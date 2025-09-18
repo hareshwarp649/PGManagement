@@ -30,9 +30,4 @@
     <PackageReference Include="TimeZoneConverter" Version="7.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="ServiceInfra\IServices\" />
-    <Folder Include="ServiceInfra\Services\" />
-  </ItemGroup>
-
 </Project>

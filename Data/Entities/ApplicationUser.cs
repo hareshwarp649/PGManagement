@@ -15,8 +15,6 @@ namespace PropertyManage.Data.Entities
         //public virtual Bank? Bank { get; set; }
 
         public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
-        public int? ProjectId { get; set; } // optional multi-tenant/project link if needed
-
        
     }
 

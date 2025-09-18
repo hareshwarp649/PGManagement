@@ -1,4 +1,6 @@
-﻿using EnumsNET;
+﻿using bca.api.Infrastructure.IRepository;
+using bca.api.Services;
+using EnumsNET;
 using Microsoft.AspNetCore.Identity;
 using PropertyManage.Data.Entities;
 using PropertyManage.Domain.Enums;

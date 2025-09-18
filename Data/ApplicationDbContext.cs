@@ -94,6 +94,7 @@ namespace PropertyManage.Data
                 .HasForeignKey(l => l.RoleId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
+        public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
 
@@ -104,5 +105,16 @@ namespace PropertyManage.Data
 
         public DbSet<Employee> Employees { get; set; }
         public DbSet<EmployeeDocument> EmployeeDocuments { get; set; }
+
+        // Add other DbSets for your entities here
+
+        public DbSet<Country> Countries { get; set; }
+        public DbSet<State> States { get; set; }
+        public DbSet<District> Districts { get; set; }
+
+        public DbSet<Owner> Owners { get; set; }
+        public DbSet<Property> Properties { get; set; }
+
+
     }
 }

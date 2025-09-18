@@ -1,4 +1,6 @@
 ﻿using bca.api.Enums.Permissions;
+using bca.api.Infrastructure.IRepository;
+using bca.api.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PropertyManage.Data.Entities;

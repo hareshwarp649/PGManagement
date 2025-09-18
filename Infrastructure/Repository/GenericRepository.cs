@@ -37,7 +37,7 @@ namespace PropertyManage.Infrastructure.Repository
             return await query.ToListAsync();
         }
 
-        public async Task<T?> GetByIdAsync(int id, params Expression<Func<T, object>>[] includes)
+        public async Task<T?> GetByIdAsync(Guid id, params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = _dbSet;
 
@@ -46,12 +46,12 @@ namespace PropertyManage.Infrastructure.Repository
                 query = query.Include(include);
             }
 
-            return await query.FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == id);
+            return await query.FirstOrDefaultAsync(e => EF.Property<Guid>(e, "Id") == id);
         }
 
-        public async Task<IEnumerable<T>> GetByIdsAsync(IEnumerable<int> ids)
+        public async Task<IEnumerable<T>> GetByIdsAsync(IEnumerable<Guid> ids)
         {
-            return await _dbSet.Where(e => ids.Contains(EF.Property<int>(e, "Id"))).ToListAsync();
+            return await _dbSet.Where(e => ids.Contains(EF.Property<Guid>(e, "Id"))).ToListAsync();
         }
 
         public async Task<T?> GetByNameAsync(string name, params Expression<Func<T, object>>[] includes)
@@ -122,7 +122,7 @@ namespace PropertyManage.Infrastructure.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(Guid id)
         {
             var entity = await _dbSet.FindAsync(id);
             if (entity == null) return false;
