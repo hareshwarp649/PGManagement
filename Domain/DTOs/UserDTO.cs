@@ -2,12 +2,10 @@
 {
     public class UserDTO
     {
-        public string Id { get; set; } = string.Empty;
-        public string UserName { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string PhoneNumber { get; set; } = string.Empty;
-        public string EntityId { get; set; } = string.Empty;
-        public int? BankId { get; set; }
-        public string? BankName { get; set; }
+
+        public Guid Id { get; set; }
+        public string FullName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public IEnumerable<string> Roles { get; set; }= new List<string>();
     }
 }

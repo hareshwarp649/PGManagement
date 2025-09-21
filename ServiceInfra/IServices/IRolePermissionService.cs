@@ -5,8 +5,8 @@ namespace bca.api.Services
 {
     public interface IRolePermissionService
     {
-        Task<IEnumerable<PermissionDTO>> GetPermissionsByRoleIdAsync(int roleId);
-        Task<bool> AddPermissionsAsync(int roleId, List<int> permissionIds);
-        Task<bool> RemovePermissionsAsync(int roleId, List<int> permissionIds);
+        Task<IEnumerable<PermissionDTO>> GetPermissionsByRoleIdAsync(Guid roleId);
+        Task<bool> AddPermissionsAsync(Guid roleId, List<Guid> permissionIds);
+        Task<bool> RemovePermissionsAsync(Guid roleId, List<Guid> permissionIds);
     }
 }

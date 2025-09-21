@@ -3,8 +3,9 @@ using PropertyManage.Infrastructure.IRepository;
 
 namespace bca.api.Infrastructure.IRepository
 {
-    public interface IRoleRepository : IGenericRepository<Role>
+    public interface IRoleRepository : IGenericRepository<ApplicationRole>
     {
-        Task<IEnumerable<Role>> GetAllWithPermissionsAsync();
+        Task<IEnumerable<ApplicationRole>> GetAllWithPermissionsAsync();
+        Task<ApplicationRole?> GetByIdWithPermissionsAsync(Guid roleId);
     }
 }

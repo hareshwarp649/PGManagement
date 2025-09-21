@@ -103,7 +103,7 @@ namespace bca.api.Services
             return mappedDocuments;
         }
 
-        public async Task<bool> DeleteDocumentAsync(int id)
+        public async Task<bool> DeleteDocumentAsync(Guid id)
         {
             var document = await _documentRepository.GetByIdAsync(id);
             if (document == null)
@@ -116,7 +116,7 @@ namespace bca.api.Services
             return await _documentRepository.DeleteAsync(id);
         }
 
-        public async Task<FileStreamResult?> GetDocumentAsync(int documentId)
+        public async Task<FileStreamResult?> GetDocumentAsync(Guid documentId)
         {
             var document = await _documentRepository.GetByIdAsync(documentId);
             if (document == null || !File.Exists(document.FilePath))
@@ -126,7 +126,7 @@ namespace bca.api.Services
             return new FileStreamResult(stream, document.ContentType) { FileDownloadName = document.FileName };
         }
 
-        public async Task<UserDocument?> GetByIdAsync(int documentId)
+        public async Task<UserDocument?> GetByIdAsync(Guid documentId)
         {
             return await _documentRepository.GetByIdAsync(documentId);
         }

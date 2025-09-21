@@ -15,7 +15,7 @@ namespace bca.api.Infrastructure.Repository
             _context = context;
         }
 
-        public async Task<IEnumerable<RolePermission>> GetPermissionsByRoleIdAsync(int roleId)
+        public async Task<IEnumerable<RolePermission>> GetPermissionsByRoleIdAsync(Guid roleId)
         {
             return await _context.RolePermissions
                 .Where(rp => rp.RoleId == roleId)
@@ -23,14 +23,17 @@ namespace bca.api.Infrastructure.Repository
                 .ToListAsync();
         }
 
-        public async Task RemovePermissionsAsync(int roleId, List<int> permissionIds)
+        public async Task RemovePermissionsAsync(Guid roleId, List<Guid> permissionIds)
         {
             var permissions = await _context.RolePermissions
                 .Where(rp => rp.RoleId == roleId && permissionIds.Contains(rp.PermissionId))
             .ToListAsync();
 
-            _context.RolePermissions.RemoveRange(permissions);
-            await _context.SaveChangesAsync();
+            if (permissions.Any())
+            {
+                _context.RolePermissions.RemoveRange(permissions);
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task AddRangeAsync(IEnumerable<RolePermission> rolePermissions) // ✅ Add this method

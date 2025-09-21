@@ -1,6 +1,8 @@
 ﻿using bca.api.DTOs;
 using bca.api.Services;
 using Microsoft.AspNetCore.Mvc;
+using PropertyManage.Data.Entities;
+using PropertyManage.Domain.DTOs;
 
 namespace bca.api.Controllers
 {
@@ -24,28 +26,61 @@ namespace bca.api.Controllers
             return Ok(users);
         }
 
-        [HttpGet("{userId}/roles")]
-        public async Task<IActionResult> GetUserRoles(string userId)
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<UserDTO>>> GetAll()
         {
-            var roles = await _userRoleService.GetUserRolesAsync(userId);
-            return Ok(roles);
+            var users = await _userService.GetAllAsync();
+            return Ok(users);
         }
 
-        [HttpPost("{userId}/roles")]
-        public async Task<IActionResult> AddRoles(string userId, [FromBody] List<int> roleIds)
+        [HttpPost]
+        public async Task<ActionResult<UserDTO>> Create(UserCreateDTO dto)
         {
-            var result = await _userRoleService.AddRolesAsync(userId, roleIds);
-            if (!result)
-                return BadRequest("No roles added.");
-
-            return Ok("Roles added successfully.");
+            try
+            {
+                var user = await _userService.CreateAsync(dto);
+                return CreatedAtAction(nameof(GetAll), new { id = user.Id }, user);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
-        [HttpDelete("{userId}/roles")]
-        public async Task<IActionResult> RemoveRoles(string userId, [FromBody] List<int> roleIds)
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> SoftDelete(Guid id)
         {
-            await _userRoleService.RemoveRolesAsync(userId, roleIds);
-            return Ok("Roles removed successfully.");
+            try
+            {
+                await _userService.SoftDeleteAsync(id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+        }
+
+
+        [HttpGet("{userId}")]
+        public async Task<IActionResult> GetRoles(Guid userId)
+        {
+            var roles = await _userRoleService.GetRolesByUserIdAsync(userId);
+            return Ok(roles); 
+        }
+
+        [HttpPost("assign")]
+        public async Task<IActionResult> AssignRole(UserRole userRole)
+        {
+            await _userRoleService.AssignRoleAsync(userRole);
+            return Ok(new { message = "Role assigned successfully" });
+        }
+
+        [HttpPost("remove")]
+        public async Task<IActionResult> RemoveRole(UserRole userRole)
+        {
+            await _userRoleService.RemoveRoleAsync(userRole);
+            return Ok(new { message = "Role removed successfully" });
         }
     }
 }

@@ -6,6 +6,9 @@ using bca.api.Infrastructure.IRepository;
 using PropertyManage.Data.Entities;
 using PropertyManage.Data;
 using PropertyManage.Domain.Enums;
+using NPOI.SS.Formula.Functions;
+using PropertyManage.Domain.DTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace bca.api.Services
 {
@@ -13,11 +16,12 @@ namespace bca.api.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly IRoleService _roleService;
         private readonly IUserRoleRepository _userRoleRepository;
         private readonly IMapper _mapper;
 
-        public UserService(IMapper mapper, IUserRoleRepository userRoleRepository, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IRoleService roleService)
+        public UserService(IMapper mapper, IUserRoleRepository userRoleRepository, UserManager<ApplicationUser> userManager, ApplicationDbContext context, RoleManager<ApplicationRole> roleManager,  IRoleService roleService)
         {
             _mapper = mapper;
             _userRoleRepository = userRoleRepository;
@@ -32,121 +36,77 @@ namespace bca.api.Services
             var users = userRoles.Select(ur => ur.User);
             return _mapper.Map<IEnumerable<UserDTO>>(users);
         }
-
-        public async Task<IdentityResult> RegisterSPOC(RegisterSPOCModel model)
+       
+        public async Task<UserDTO> GetByIdAsync(Guid id)
         {
-            var role = await _roleService.GetRoleByNameAsync("SPOC_IN_HOUSE");
-            if (role == null)
-                throw new Exception("Role Not found : SPOC_IN_HOUSE");
-
-            // Start a transaction (if using EF Core)
-            using (var transaction = await _context.Database.BeginTransactionAsync())
-            {
-                try
-                {
-                    if(_context.ApplicationUsers.Any(x => x.UserType == UserType.Admin))
-                        throw new Exception("SPOC already exists for this Bank.");
-
-                    var user = new ApplicationUser
-                    {
-                        UserName = model.Username,
-                       // BankId = model.BankId,
-                        UserType = UserType.Admin
-                    };
-                    var result = await _userManager.CreateAsync(user, model.Password);
-
-                    if (!result.Succeeded)
-                        return result;
-
-                    // Assign Role
-                    await _userRoleRepository.AddAsync(new UserRole { UserId = user.Id, RoleId = role.Id });
-
-                    // Commit transaction
-                    await transaction.CommitAsync();
-                    return result;
-                }
-                catch (Exception ex)
-                {
-                    // Rollback on failure
-                    await transaction.RollbackAsync();
-                    throw new Exception($"Error: {ex.Message}");
-                }
-            }
+            var user = await _userManager.Users.Include(u => u.UserRoles).ThenInclude(ur => ur.Role).FirstOrDefaultAsync(u => u.Id == id);
+            if (user == null) throw new KeyNotFoundException();
+            return _mapper.Map<UserDTO>(user);
         }
 
-        public async Task<IdentityResult> RegisterAdmin(RegisterAdminModel model)
+        public async Task<IEnumerable<UserDTO>> GetAllAsync()
         {
-            var role = await _roleService.GetRoleByNameAsync("ADMIN");
-            if (role == null)
-                throw new Exception("Role Not found : ADMIN");
-
-            // Start a transaction (if using EF Core)
-            using (var transaction = await _context.Database.BeginTransactionAsync())
-            {
-                try
-                {
-                    var user = new ApplicationUser
-                    {
-                        UserName = model.Username,
-                        UserType = UserType.Admin
-                    };
-                    var result = await _userManager.CreateAsync(user, model.Password);
-
-                    if (!result.Succeeded)
-                        return result;
-
-                    // Assign role using Identity
-                    await _userManager.AddToRoleAsync(user, "ADMIN");
-
-                    // Assign Role
-                    await _userRoleRepository.AddAsync(new UserRole { UserId = user.Id, RoleId = role.Id });
-
-                    // Commit transaction
-                    await transaction.CommitAsync();
-                    return result;
-                }
-                catch (Exception ex)
-                {
-                    // Rollback on failure
-                    await transaction.RollbackAsync();
-                    throw new Exception($"Error: {ex.Message}");
-                }
-            }
+            var users = await _userManager.Users.Include(u => u.UserRoles).ThenInclude(ur => ur.Role).ToListAsync();
+            return _mapper.Map<IEnumerable<UserDTO>>(users);
         }
 
-        public async Task<IdentityResult> RegisterSuperAdmin(RegisterAdminModel model)
+        public async Task<UserDTO> CreateAsync(UserCreateDTO dto)
         {
-            var role = await _roleService.GetRoleByNameAsync("SUPERADMIN");
-            if (role == null)
-                throw new Exception("Role Not found : SUPERADMIN");
-
-            using (var transaction = await _context.Database.BeginTransactionAsync())
+            var user = new ApplicationUser { Email = dto.Email, UserName = dto.Email, FullName = dto.FullName, EntityId = dto.EntityId };
+            var res = await _userManager.CreateAsync(user, dto.Password);
+            if (!res.Succeeded) throw new Exception(string.Join(",", res.Errors.Select(e => e.Description)));
+            if (dto.Roles != null && dto.Roles.Any())
             {
-                try
-                {
-                    var user = new ApplicationUser
-                    {
-                        UserName = model.Username,
-                        UserType = UserType.SuperAdmin // नया Enum Type
-                    };
-                    var result = await _userManager.CreateAsync(user, model.Password);
-
-                    if (!result.Succeeded)
-                        return result;
-
-                    // Assign role using Identity
-                    await _userManager.AddToRoleAsync(user, "SUPERADMIN");
-
-                    await _userRoleRepository.AddAsync(new UserRole { UserId = user.Id, RoleId = role.Id });
-                    await transaction.CommitAsync();
-                    return result;
-                }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync();
-                    throw new Exception($"Error: {ex.Message}");
-                }
+                await _userManager.AddToRolesAsync(user, dto.Roles);
             }
+            return _mapper.Map<UserDTO>(user);
+        }
+
+        public async Task SoftDeleteAsync(Guid id)
+        {
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user == null) throw new KeyNotFoundException();
+            user.IsDeleted = true;
+            await _userManager.UpdateAsync(user);
+        }
+
+        public async Task<UserDTO> RegisterUserAsync(RegisterUserModel model)
+        {
+            // 1️⃣ Role check
+            var role = await _roleManager.FindByNameAsync(model.RoleName);
+            if (role == null)
+                throw new Exception($"Role not found: {model.RoleName}");
+
+            // 2️⃣ Create User
+            var user = new ApplicationUser
+            {
+                UserName = model.Username,
+                UserType = model.UserType
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (!result.Succeeded)
+                throw new Exception(string.Join(",", result.Errors.Select(e => e.Description)));
+
+
+            // 3️⃣ Assign role via Identity
+            await _userManager.AddToRoleAsync(user, model.RoleName);
+
+            // 4️⃣ Assign role in custom UserRole table
+            await _userRoleRepository.AddAsync(new UserRole
+            {
+                UserId = user.Id,
+                RoleId = role.Id
+            });
+
+            return new UserDTO
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email!,
+                Roles = new List<string> { model.RoleName }
+            };
+
         }
     }
 }

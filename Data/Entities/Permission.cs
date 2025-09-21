@@ -2,11 +2,9 @@
 {
     public class Permission
     {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string? Description { get; set; } = string.Empty;
-        public string? Category { get; set; } = string.Empty;
-
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public string Name { get; set; } = null!;     // unique, e.g. "Products.Create"
+        public string? Description { get; set; }
         public virtual ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
     }
 }

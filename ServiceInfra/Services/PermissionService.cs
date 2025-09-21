@@ -21,43 +21,40 @@ namespace bca.api.Services
             var permissions = await _permissionRepository.GetAllAsync();
             return _mapper.Map<IEnumerable<PermissionDTO>>(permissions);
         }
-        public async Task<PermissionDTO?> GetPermissionByIdAsync(int id)
+        public async Task<PermissionDTO?> GetPermissionByIdAsync(Guid id)
         {
             var permission = await _permissionRepository.GetByIdAsync(id, p => p.RolePermissions);
             return _mapper.Map<PermissionDTO>(permission);
         }
 
-        public async Task<PermissionDTO> AddPermissionAsync(Permission permission)
+        public async Task<PermissionDTO> AddPermissionAsync(PermissionDTO dto)
         {
-            var addedPermission = await _permissionRepository.AddAsync(permission);
-            return _mapper.Map<PermissionDTO>(addedPermission);
+            var permission = _mapper.Map<Permission>(dto);
+            permission.Id = Guid.NewGuid();
+
+            await _permissionRepository.AddAsync(permission);
+            await _permissionRepository.SaveChangesAsync();
+
+            return _mapper.Map<PermissionDTO>(permission);
         }
 
-        public async Task<PermissionDTO?> UpdatePermissionAsync(int id, Permission permission)
+        public async Task<PermissionDTO?> UpdatePermissionAsync(Guid id, PermissionDTO permission)
         {
             var existingPermission = await _permissionRepository.GetByIdAsync(id);
             if (existingPermission == null) return null;
 
-            existingPermission.Name = permission.Name;
+            //existingPermission.Name = permission.Name;
+            _mapper.Map(permission,existingPermission);
             var updatedPermission = await _permissionRepository.UpdateAsync(existingPermission);
             return _mapper.Map<PermissionDTO>(updatedPermission);
         }
 
-        public async Task<bool> DeletePermissionAsync(int id)
+        public async Task<bool> DeletePermissionAsync(Guid id)
         {
             await _permissionRepository.DeleteAsync(id);
             return true;
         }
 
-        public async Task<IEnumerable<PermissionDTO>> SearchAndSortPermissionsAsync(string? name, string? category, string? description, string? sortBy, string? sortOrder, int pageNumber, int pageSize)
-        {
-            var permissions = await _permissionRepository.SearchAndSortPermissionsAsync(name, category, description, sortBy, sortOrder, pageNumber, pageSize);
-            return _mapper.Map<IEnumerable<PermissionDTO>>(permissions);
-        }
-
-        public async Task<bool> HasPermissionAsync(string userName, string permissionName)
-        {
-            return await _permissionRepository.HasPermissionAsync(userName, permissionName);
-        }
+      
     }
 }

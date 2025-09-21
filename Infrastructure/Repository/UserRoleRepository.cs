@@ -15,30 +15,6 @@ namespace bca.api.Infrastructure.Repository
             _context = context;
         }
 
-        public async Task<IEnumerable<UserRole>> GetRolesByUserIdAsync(string userId)
-        {
-            return await _context.UserRoles
-                .Where(ur => ur.UserId == userId)
-                .Include(ur => ur.Role)
-                .ToListAsync();
-        }
-
-        public async Task AddRangeAsync(IEnumerable<UserRole> userRoles) // ✅ Add this method
-        {
-            await _context.UserRoles.AddRangeAsync(userRoles); // Bulk Insert
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task RemoveRolesAsync(string userId, List<int> roleIds)
-        {
-            var roles = await _context.UserRoles
-                .Where(ur => ur.UserId == userId && roleIds.Contains(ur.RoleId))
-            .ToListAsync();
-
-            _context.UserRoles.RemoveRange(roles);
-            await _context.SaveChangesAsync();
-        }
-
         public async Task<IEnumerable<UserRole>> GetUsersByRoleNameAsync(string roleName)
         {
             return await _context.UserRoles
@@ -47,13 +23,36 @@ namespace bca.api.Infrastructure.Repository
                 .ToListAsync();
         }
 
-        public async Task<bool> DeleteRolesAsync(string userId)
+
+        public async Task AssignRoleAsync(UserRole userRole)
         {
-            // First remove user roles
-            var roles = await _context.UserRoles.Where(ur => ur.UserId == userId).ToListAsync();
-            _context.UserRoles.RemoveRange(roles);
-            await _context.SaveChangesAsync();
-            return true;
+            var exists = await _context.UserRoles
+                .AnyAsync(ur => ur.UserId == userRole.UserId && ur.RoleId == userRole.RoleId);
+            if (!exists)
+            {
+                _context.UserRoles.Add(userRole);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task RemoveRoleAsync(UserRole userRole)
+        {
+            var existing = await _context.UserRoles
+                .FirstOrDefaultAsync(ur => ur.UserId == userRole.UserId && ur.RoleId == userRole.RoleId);
+            if (existing != null)
+            {
+                _context.UserRoles.Remove(existing);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<List<ApplicationRole>> GetRolesByUserIdAsync(Guid userId)
+        {
+            return await _context.UserRoles
+                .Where(ur => ur.UserId == userId)
+                .Include(ur => ur.Role)
+                .Select(ur => ur.Role)
+                .ToListAsync();
         }
     }
 }

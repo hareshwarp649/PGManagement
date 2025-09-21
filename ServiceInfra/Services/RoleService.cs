@@ -2,6 +2,7 @@
 using bca.api.DTOs;
 using bca.api.Infrastructure.IRepository;
 using PropertyManage.Data.Entities;
+using PropertyManage.Domain.DTOs;
 using System.Collections.Generic;
 
 namespace bca.api.Services
@@ -23,34 +24,37 @@ namespace bca.api.Services
             return _mapper.Map<IEnumerable<RoleDTO>>(roles);
         }
 
-        public async Task<Role?> GetRoleByIdAsync(Guid id)
+        public async Task<RoleDTO?> GetRoleByIdAsync(Guid id)
         {
-            return await _roleRepository.GetByIdAsync(id, r => r.RolePermissions);
+            var role = await _roleRepository.GetByIdWithPermissionsAsync(id);
+            return role == null ? null : _mapper.Map<RoleDTO>(role);
+        }
+        public async Task<RoleDTO> CreateRoleAsync(RoleCreateDTO dto)
+        {
+            var role = _mapper.Map<ApplicationRole>(dto);
+            role.Id = Guid.NewGuid();
+
+            await _roleRepository.AddAsync(role);
+
+            return _mapper.Map<RoleDTO>(role);
         }
 
-        public async Task<Role> AddRoleAsync(Role role)
-        {
-            return await _roleRepository.AddAsync(role);
-        }
 
-        public async Task<Role?> UpdateRoleAsync(Guid id, Role role)
+        public async Task<RoleDTO?> UpdateRoleAsync(Guid id, RoleCreateDTO dto)
         {
             var existingRole = await _roleRepository.GetByIdAsync(id);
             if (existingRole == null) return null;
 
-            existingRole.Name = role.Name;
-            existingRole.Description = role.Description;
-            return await _roleRepository.UpdateAsync(existingRole);
+            existingRole.Name = dto.Name;
+            existingRole.Description = dto.Description;
+             await _roleRepository.UpdateAsync(existingRole);
+            return _mapper.Map<RoleDTO?>(existingRole); 
         }
+
 
         public async Task<bool> DeleteRoleAsync(Guid id)
         {
             return await _roleRepository.DeleteAsync(id);
-        }
-
-        public async Task<Role?> GetRoleByNameAsync(string name)
-        {
-            return await _roleRepository.GetByNameAsync(name);
         }
     }
 }

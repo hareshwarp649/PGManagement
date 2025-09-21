@@ -4,11 +4,10 @@ namespace PropertyManage.Data.Entities
 {
     public class RolePermission
     {
-        public int RoleId { get; set; }
-        [JsonIgnore]
-        public Role Role { get; set; } = null!;
-        public int PermissionId { get; set; }
-        [JsonIgnore]
+        public Guid RoleId { get; set; }
+        public ApplicationRole Role { get; set; } = null!;
+
+        public Guid PermissionId { get; set; }
         public Permission Permission { get; set; } = null!;
     }
 }

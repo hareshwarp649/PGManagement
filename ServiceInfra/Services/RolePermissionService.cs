@@ -18,13 +18,13 @@ namespace bca.api.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<PermissionDTO>> GetPermissionsByRoleIdAsync(int roleId)
+        public async Task<IEnumerable<PermissionDTO>> GetPermissionsByRoleIdAsync(Guid roleId)
         {
             var rolePermissions = await _rolePermissionRepository.GetPermissionsByRoleIdAsync(roleId);
             return _mapper.Map<IEnumerable<PermissionDTO>>(rolePermissions.Select(rp => rp.Permission));
         }
 
-        public async Task<bool> AddPermissionsAsync(int roleId, List<int> permissionIds)
+        public async Task<bool> AddPermissionsAsync(Guid roleId, List<Guid> permissionIds)
         {
             var existingPermissions = await _rolePermissionRepository.GetPermissionsByRoleIdAsync(roleId);
             var existingPermissionIds = existingPermissions.Select(p => p.Permission.Id).ToList();
@@ -42,7 +42,7 @@ namespace bca.api.Services
             return false;
         }
 
-        public async Task<bool> RemovePermissionsAsync(int roleId, List<int> permissionIds)
+        public async Task<bool> RemovePermissionsAsync(Guid roleId, List<Guid> permissionIds)
         {
             await _rolePermissionRepository.RemovePermissionsAsync(roleId, permissionIds);
             return true;

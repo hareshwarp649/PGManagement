@@ -17,40 +17,19 @@ namespace bca.api.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<RoleDTO>> GetUserRolesAsync(string userId)
+        public async Task AssignRoleAsync(UserRole userRole)
         {
-            var userRoles = await _userRoleRepository.GetRolesByUserIdAsync(userId);
-            return _mapper.Map<IEnumerable<RoleDTO>>(userRoles.Select(ur => ur.Role));
+            await _userRoleRepository.AssignRoleAsync(userRole);
         }
 
-        public async Task<bool> AddRolesAsync(string userId, List<int> roleIds)
+        public async Task RemoveRoleAsync(UserRole userRole)
         {
-            var existingRoles = await _userRoleRepository.GetRolesByUserIdAsync(userId);
-            var existingRoleIds = existingRoles.Select(r => r.RoleId).ToList();
-
-            var newRoles = roleIds
-                .Where(rid => !existingRoleIds.Contains(rid))
-                .Select(rid => new UserRole { UserId = userId, RoleId = rid })
-                .ToList();
-
-            if (newRoles.Any())
-            {
-                await _userRoleRepository.AddRangeAsync(newRoles);
-                return true;
-            }
-
-            return false;
+            await _userRoleRepository.RemoveRoleAsync(userRole);
         }
 
-        public async Task<bool> RemoveRolesAsync(string userId, List<int> roleIds)
+        public async Task<List<ApplicationRole>> GetRolesByUserIdAsync(Guid userId)
         {
-            await _userRoleRepository.RemoveRolesAsync(userId, roleIds);
-            return true;
-        }
-
-        public async Task<bool> DeleteRolesAsync(string userId)
-        {
-            return await _userRoleRepository.DeleteRolesAsync(userId);
+            return await _userRoleRepository.GetRolesByUserIdAsync(userId);
         }
     }
 

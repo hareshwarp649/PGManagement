@@ -1,12 +1,13 @@
 ﻿using bca.api.DTOs;
+using PropertyManage.Data.Entities;
 
 namespace bca.api.Services
 {
     public interface IUserRoleService
     {
-        Task<IEnumerable<RoleDTO>> GetUserRolesAsync(string userId);
-        Task<bool> AddRolesAsync(string userId, List<int> roleIds);
-        Task<bool> RemoveRolesAsync(string userId, List<int> roleIds);
-        Task<bool> DeleteRolesAsync(string userId);
+
+        Task AssignRoleAsync(UserRole userRole);
+        Task RemoveRoleAsync(UserRole userRole);
+        Task<List<ApplicationRole>> GetRolesByUserIdAsync(Guid userId);
     }
 }

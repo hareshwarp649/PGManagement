@@ -10,8 +10,8 @@ namespace bca.api.Services
         Task<UserDocumentDTO> UploadDocumentAsync(UserDocumentUploadDTO uploadDTO);
         Task<IEnumerable<UserDocumentDTO>> UploadMultipleDocumentsAsync(UserMultipleDocumentUploadDTO uploadDTO);
         Task<IEnumerable<UserDocumentDTO>> GetUserDocumentsAsync(int userId);
-        Task<bool> DeleteDocumentAsync(int id);
-        Task<FileStreamResult?> GetDocumentAsync(int documentId);
-        Task<UserDocument?> GetByIdAsync(int documentId);
+        Task<bool> DeleteDocumentAsync(Guid id);
+        Task<FileStreamResult?> GetDocumentAsync(Guid documentId);
+        Task<UserDocument?> GetByIdAsync(Guid documentId);
     }
 }

@@ -2,6 +2,7 @@
 using bca.api.Services;
 using Microsoft.AspNetCore.Mvc;
 using PropertyManage.Data.Entities;
+using PropertyManage.Domain.DTOs;
 
 namespace bca.api.Controllers
 {
@@ -25,7 +26,7 @@ namespace bca.api.Controllers
             return Ok(roles);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var role = await _roleService.GetRoleByIdAsync(id);
@@ -33,17 +34,18 @@ namespace bca.api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] Role role)
+        public async Task<IActionResult> Create(RoleCreateDTO dto)
         {
-            var newRole = await _roleService.AddRoleAsync(role);
-            return Ok(newRole);
+            var role = await _roleService.CreateRoleAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = role.Id }, role);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] Role role)
+        [HttpPut("{id:guid}")]
+        public async Task<IActionResult> Update(Guid id, RoleCreateDTO dto)
         {
-            var updatedRole = await _roleService.UpdateRoleAsync(id, role);
-            return updatedRole != null ? Ok(updatedRole) : NotFound();
+            var updated = await _roleService.UpdateRoleAsync(id, dto);
+            if (updated == null) return NotFound();
+            return Ok(updated);
         }
 
         [HttpDelete("{id}")]
@@ -54,14 +56,14 @@ namespace bca.api.Controllers
         }
 
         [HttpGet("{roleId}/permissions")]
-        public async Task<IActionResult> GetPermissions(int roleId)
+        public async Task<IActionResult> GetPermissions(Guid roleId)
         {
             var permissions = await _rolePermissionService.GetPermissionsByRoleIdAsync(roleId);
             return Ok(permissions);
         }
 
-        [HttpPost("{roleId}/permissions")]
-        public async Task<IActionResult> AddPermissions(int roleId, [FromBody] List<int> permissionIds)
+        [HttpPost("{roleId}/permissions_assign")]
+        public async Task<IActionResult> AddPermissions(Guid roleId, [FromBody] List<Guid> permissionIds)
         {
             var result = await _rolePermissionService.AddPermissionsAsync(roleId, permissionIds);
             if (!result)
@@ -70,8 +72,8 @@ namespace bca.api.Controllers
             return Ok("Permissions added successfully.");
         }
 
-        [HttpDelete("{roleId}/permissions")]
-        public async Task<IActionResult> RemovePermissions(int roleId, [FromBody] List<int> permissionIds)
+        [HttpDelete("{roleId}/permissions_remove")]
+        public async Task<IActionResult> RemovePermissions(Guid roleId, [FromBody] List<Guid> permissionIds)
         {
             await _rolePermissionService.RemovePermissionsAsync(roleId, permissionIds);
             return Ok("Permissions removed successfully.");

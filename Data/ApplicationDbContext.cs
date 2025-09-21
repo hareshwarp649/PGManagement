@@ -5,7 +5,9 @@ using PropertyManage.Data.Entities;
 
 namespace PropertyManage.Data
 {
-    public class ApplicationDbContext:IdentityDbContext<ApplicationUser>
+    public class ApplicationDbContext:IdentityDbContext<ApplicationUser, ApplicationRole, Guid,
+    IdentityUserClaim<Guid>, IdentityUserRole<Guid>, IdentityUserLogin<Guid>,
+    IdentityRoleClaim<Guid>, IdentityUserToken<Guid>>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
@@ -17,21 +19,21 @@ namespace PropertyManage.Data
 
             //Set key lengths explicitly to avoid exceeding 900 bytes
 
-            builder.Entity<IdentityUserLogin<string>>(entity =>
+            builder.Entity<IdentityUserLogin<Guid>>(entity =>
             {
                 entity.HasKey(l => new { l.LoginProvider, l.ProviderKey });
                 entity.Property(l => l.LoginProvider).HasMaxLength(450);
                 entity.Property(l => l.ProviderKey).HasMaxLength(450);
             });
 
-            builder.Entity<IdentityUserRole<string>>(entity =>
+            builder.Entity<IdentityUserRole<Guid>>(entity =>
             {
                 entity.HasKey(r => new { r.UserId, r.RoleId });
                 entity.Property(r => r.UserId).HasMaxLength(450);
                 entity.Property(r => r.RoleId).HasMaxLength(450);
             });
 
-            builder.Entity<IdentityUserToken<string>>(entity =>
+            builder.Entity<IdentityUserToken<Guid>>(entity =>
             {
                 entity.HasKey(t => new { t.UserId, t.LoginProvider, t.Name });
                 entity.Property(t => t.LoginProvider).HasMaxLength(450);
@@ -88,21 +90,20 @@ namespace PropertyManage.Data
                 .OnDelete(DeleteBehavior.Restrict); // Prevent Cascade Delete
 
             // Designation
-            builder.Entity<Employee>()
-                .HasOne(l => l.Role)
-                .WithMany()
-                .HasForeignKey(l => l.RoleId)
-                .OnDelete(DeleteBehavior.Restrict);
+            //builder.Entity<Employee>()
+            //    .HasOne(l => l.Role)
+            //    .WithMany()
+            //    .HasForeignKey(l => l.RoleId)
+            //    .OnDelete(DeleteBehavior.Restrict);
         }
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
+        public new DbSet<ApplicationRole> Roles { get; set; }
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
-
-        public new DbSet<Role> Roles { get; set; }
         public new DbSet<UserRole> UserRoles { get; set; }
+        public DbSet<ApplicationUserRefreshToken> RefreshTokens { get; set; } = null!;
 
         public DbSet<UserDocument> UserDocuments { get; set; }
-
         public DbSet<Employee> Employees { get; set; }
         public DbSet<EmployeeDocument> EmployeeDocuments { get; set; }
 
@@ -112,7 +113,6 @@ namespace PropertyManage.Data
         public DbSet<State> States { get; set; }
         public DbSet<District> Districts { get; set; }
 
-        public DbSet<Owner> Owners { get; set; }
         public DbSet<Property> Properties { get; set; }
 
 

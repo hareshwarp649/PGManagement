@@ -2,9 +2,9 @@
 {
     public class UserRole
     {
-        public required string UserId { get; set; }
+        public Guid UserId { get; set; }
         public ApplicationUser User { get; set; } = null!;
-        public required int RoleId { get; set; }
-        public Role Role { get; set; } = null!;
+        public Guid RoleId { get; set; }
+        public ApplicationRole Role { get; set; } = null!;
     }
 }
