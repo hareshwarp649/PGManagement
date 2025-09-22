@@ -15,6 +15,5 @@ namespace PropertyManage.Data.Entities
         public virtual ICollection<ApplicationUserRefreshToken> RefreshTokens { get; set; } = new List<ApplicationUserRefreshToken>();
        
     }
-
    
 }

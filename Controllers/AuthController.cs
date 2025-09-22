@@ -23,19 +23,15 @@ namespace bca.api.Controllers
         private readonly IAuthService _authService;
         private readonly IUserRoleService _userRoleService;
         private readonly IConfiguration _configuration;
-        private readonly IEmployeeService _employeeService;
-        private readonly IUserContextService _userContextService;
         private readonly IUserService _userService;
 
-        public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IAuthService authService ,IUserRoleService userRoleService, IConfiguration configuration, IEmployeeService employeeService, IUserContextService userContextService, IUserService userService)
+        public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IAuthService authService ,IUserRoleService userRoleService, IConfiguration configuration, IUserService userService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _authService = authService;
             _userRoleService = userRoleService;
             _configuration = configuration;
-            _employeeService = employeeService;
-            _userContextService = userContextService;
             _userService = userService;
         }
 

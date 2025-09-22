@@ -9,7 +9,7 @@ namespace PropertyManage.Data.Entities
         public decimal Amount { get; set; }
         public DateTime ExpenseDate { get; set; }
 
-        public Property Property { get; set; }
+        public Propertiy Propertiy { get; set; }
         public ExpenseCategory ExpenseCategory { get; set; }
     }
 }

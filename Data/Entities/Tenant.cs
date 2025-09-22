@@ -1,4 +1,6 @@
-﻿namespace PropertyManage.Data.Entities
+﻿using PropertyManage.Domain.Enums;
+
+namespace PropertyManage.Data.Entities
 {
     public class Tenant : BaseEntity
     {
@@ -10,5 +12,13 @@
 
         public Guid UnitId { get; set; }
         public Unit Unit { get; set; }
+
+        // Optional: Tenant type
+        public TenantType TenantType { get; set; } = TenantType.Permanent;
+
+        // Relationships
+        public ICollection<LeaseAgreement> LeaseAgreements { get; set; } = new List<LeaseAgreement>();
+        public ICollection<PaymentTransaction> Payments { get; set; } = new List<PaymentTransaction>();
+        public SecurityDeposit SecurityDeposit { get; set; }
     }
 }

@@ -53,7 +53,10 @@ namespace PropertyManage.Infrastructure.Repository
         {
             return await _dbSet.Where(e => ids.Contains(EF.Property<Guid>(e, "Id"))).ToListAsync();
         }
-
+        public virtual IQueryable<T> Query()
+        {
+            return _dbSet.AsQueryable();
+        }
         public async Task<T?> GetByNameAsync(string name, params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = _dbSet;

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PropertyManage.Data.Entities;
 using PropertyManage.Domain.Enums;
+using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
@@ -13,263 +14,108 @@ namespace PropertyManage.Data
 {
     public static class DataSeeder
     {
-        public static async Task SeedData(IServiceProvider serviceProvider)
+        public static async Task SeedData(IServiceProvider sp)
         {
-            using (var scope = serviceProvider.CreateScope())
+            using var scope = sp.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+            var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+
+            // 1. Seed Permissions
+            var permNames = new[]
             {
-                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+             "Apartment.Create",
+             "Apartment.View",
+             "Tenant.View",
+             "Payment.Record",
+             "Roles.Manage",
+             "Permissions.Manage"
+            };
 
-                // Ensure the database is migrated before seeding
-                await context.Database.MigrateAsync();
-
-               // await SeedBanks(context);
-                await SeedRoles(context);
-                await SeedPermissions(context);
-                await SeedRolePermissions(context);
-
-                // Super Admin Seeder (inject dependencies from scope)
-                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-                var roleService = scope.ServiceProvider.GetRequiredService<IRoleService>();
-                var userRoleRepository = scope.ServiceProvider.GetRequiredService<IUserRoleRepository>();
-
-                var superAdminSeeder = new SuperAdminSeeder(userManager, roleService, userRoleRepository, context);
-                await superAdminSeeder.SeedSuperAdminAsync();
+            foreach (var p in permNames)
+            {
+                if (!await db.Permissions.AnyAsync(x => x.Name == p))
+                    db.Permissions.Add(new Permission { Name = p, Description = p });
             }
-        }
+            await db.SaveChangesAsync();
 
-        private static async Task SeedPermissions(ApplicationDbContext context)
-        {
-            if (context.Permissions != null)
+            // 🔹 Seed Roles
+            var roles = new[] { "SuperAdmin", "Admin" };
+            foreach (var roleName in roles)
             {
-                var existingNames = await context.Set<Permission>()
-                    .Select(p => p.Name)
-                    .ToListAsync();
-
-                var enums = new[]
+                if (await roleMgr.FindByNameAsync(roleName) == null)
                 {
-                        typeof(OnboardingPermissions),
-                        typeof(UserPermissions),
-                        typeof(MasterDataPermissions),
-                    };
-
-                foreach (var enumType in enums)
-                {
-                    var category = enumType.Name.Replace("Permissions", "");
-
-                    var values = Enum.GetValues(enumType).Cast<Enum>().Select(e =>
+                    await roleMgr.CreateAsync(new ApplicationRole
                     {
-                        var member = enumType.GetMember(e.ToString()).First();
-                        var display = member.GetCustomAttribute<DisplayAttribute>();
-
-                        return new Permission
-                        {
-                            Name = e.ToString(),
-                            Description = display?.Name ?? e.ToString(),
-                            Category = category
-                        };
+                        Name = roleName,
+                        NormalizedName = roleName.ToUpper()
                     });
-
-                    foreach (var permission in values)
-                    {
-                        if (!existingNames.Contains(permission.Name))
-                        {
-                            context.Set<Permission>().Add(permission);
-                        }
-                    }
                 }
-
-                await context.SaveChangesAsync();
             }
-        }
 
-        private static async Task SeedRoles(ApplicationDbContext context)
-        {
-            var enumRoles = Enum.GetValues(typeof(UserRoleEnum))
-                        .Cast<UserRoleEnum>()
-                        .Select(role => new Role
-                        {
-                            Name = role.ToString(), // e.g., "JR_AREA_MANAGER"
-                            Description = GetEnumDescription(role) // e.g., "Junior Area Manager"
-                        })
-                        .ToList();
-
-            var rolesToAdd = enumRoles
-                .Where(er => !context.Roles.Any(r => r.Name == er.Name))
-                .ToList();
-
-            if (rolesToAdd.Count > 0)
+            // 🔹 Assign All Permissions to SuperAdmin
+            var allPerms = await db.Permissions.ToListAsync();
+            var superAdminRole = await roleMgr.FindByNameAsync("SuperAdmin");
+            foreach (var perm in allPerms)
             {
-                await context.Roles.AddRangeAsync(rolesToAdd);
-                await context.SaveChangesAsync();
+                if (!await db.RolePermissions.AnyAsync(rp => rp.RoleId == superAdminRole.Id && rp.PermissionId == perm.Id))
+                    db.RolePermissions.Add(new RolePermission { RoleId = superAdminRole.Id, PermissionId = perm.Id });
             }
-        }
 
-        private static string GetEnumDescription(Enum value)
-        {
-            return value.GetType()
-                        .GetField(value.ToString())?
-                        .GetCustomAttribute<DescriptionAttribute>()?
-                        .Description ?? value.ToString();
-        }
-
-        private static async Task SeedRolePermissions(ApplicationDbContext context)
-        {
-            if (!context.RolePermissions.Any())
+            // Assign selected permissions to Admin
+            var adminRole = await roleMgr.FindByNameAsync("Admin");
+            foreach (var perm in allPerms)
             {
-                var existingRolePermissions = await context.Set<RolePermission>()
-                .Select(rp => new { rp.RoleId, rp.PermissionId })
-                .ToListAsync();
+                if (!await db.RolePermissions.AnyAsync(rp => rp.RoleId == adminRole.Id && rp.PermissionId == perm.Id))
+                    db.RolePermissions.Add(new RolePermission { RoleId = adminRole.Id, PermissionId = perm.Id });
+            }
+            await db.SaveChangesAsync();
 
-                var allRoles = await context.Roles.ToListAsync();
-                var allPermissions = await context.Permissions.ToListAsync();
-                var rolePermissionMap = new Dictionary<string, string[]>
+
+            // 🔹 Read credentials from appsettings
+            var superAdminSection = config.GetSection("SeedData:SuperAdmin");
+            var adminSection = config.GetSection("SeedData:Admin");
+
+            // 🔹 Create SuperAdmin user
+            var superAdminEmail = superAdminSection["Email"];
+            var superAdminPassword = superAdminSection["Password"];
+            var superAdminFullName = superAdminSection["FullName"];
+
+            var superAdminUser = await userMgr.FindByEmailAsync(superAdminEmail);
+            if (superAdminUser == null)
+            {
+                superAdminUser = new ApplicationUser
                 {
-                    [UserRoleEnum.SUPER_ADMIN.ToString()] = new[]
-                    {
-                        UserPermissions.CanManageAdmin.ToString(),
-                        UserPermissions.CanManageSPOC.ToString(),
-                        UserPermissions.CanManageEmployee.ToString(),
-                        UserPermissions.CanViewExceptionLogs.ToString(),
-                        MasterDataPermissions.CanManageMasterData.ToString(),
-                        OnboardingPermissions.CanManageLocation.ToString(),
-                        OnboardingPermissions.CanViewOnboardingRequest.ToString(),
-                    },
-                    [UserRoleEnum.ADMIN.ToString()] = new[]
-                    {
-                        UserPermissions.CanManageEmployee.ToString(),
-                        UserPermissions.CanViewExceptionLogs.ToString(),
-                        MasterDataPermissions.CanManageMasterData.ToString(),
-                        OnboardingPermissions.CanManageLocation.ToString(),
-                        OnboardingPermissions.CanViewOnboardingRequest.ToString(),
-                    },
-                    [UserRoleEnum.STATE_HEAD.ToString()] = new[]
-                    {
-                        OnboardingPermissions.CanManageLocation.ToString(),
-                        OnboardingPermissions.CanViewOnboardingRequest.ToString()
-                    },
-                    [UserRoleEnum.SPOC_IN_HOUSE.ToString()] = new[]
-                    {
-                        OnboardingPermissions.CanManageLocation.ToString(),
-                        OnboardingPermissions.CanViewOnboardingRequest.ToString(),
-                        OnboardingPermissions.CanDeleteOnboardingRequest.ToString(),
-                        OnboardingPermissions.CanGenrateOdLetter.ToString(),
-                        OnboardingPermissions.CanAssignOdAccount.ToString(),
-                        OnboardingPermissions.CanAssignKoCode.ToString()
-                    },
-                    [UserRoleEnum.JR_TERRITORY_MANAGER.ToString()] = new[]
-                    {
-                        OnboardingPermissions.CanManageLocation.ToString(),
-                        OnboardingPermissions.CanViewOnboardingRequest.ToString()
-                    },
-                    [UserRoleEnum.TERRITORY_MANAGER.ToString()] = new[]
-                    {
-                        OnboardingPermissions.CanManageLocation.ToString(),
-                        OnboardingPermissions.CanViewOnboardingRequest.ToString()
-                    },
-                    [UserRoleEnum.SR_TERRITORY_MANAGER.ToString()] = new[]
-                    {
-                        OnboardingPermissions.CanManageLocation.ToString(),
-                        OnboardingPermissions.CanViewOnboardingRequest.ToString()
-                    },
-                    [UserRoleEnum.JR_REGIONAL_MANAGER.ToString()] = new[]
-                    {
-                        OnboardingPermissions.CanManageLocation.ToString(),
-                        OnboardingPermissions.CanViewOnboardingRequest.ToString()
-                    },
-                    [UserRoleEnum.REGIONAL_MANAGER.ToString()] = new[]
-                    {
-                        OnboardingPermissions.CanManageLocation.ToString(),
-                        OnboardingPermissions.CanViewOnboardingRequest.ToString()
-                    },
-                    [UserRoleEnum.SR_REGIONAL_MANAGER.ToString()] = new[]
-                    {
-                        OnboardingPermissions.CanManageLocation.ToString(),
-                        OnboardingPermissions.CanViewOnboardingRequest.ToString()
-                    },
-                    [UserRoleEnum.JR_AREA_MANAGER.ToString()] = new[]
-                    {
-                        OnboardingPermissions.CanManageLocation.ToString(),
-                        OnboardingPermissions.CanViewOnboardingRequest.ToString()
-                    },
-                    [UserRoleEnum.AREA_MANAGER.ToString()] = new[]
-                    {
-                        OnboardingPermissions.CanManageLocation.ToString(),
-                        OnboardingPermissions.CanViewOnboardingRequest.ToString()
-                    },
-                    [UserRoleEnum.SR_AREA_MANAGER.ToString()] = new[]
-                    {
-                        OnboardingPermissions.CanManageLocation.ToString(),
-                        OnboardingPermissions.CanViewOnboardingRequest.ToString()
-                    },
-                    // add more roles as needed
+                    Email = superAdminEmail,
+                    UserName = superAdminEmail,
+                    FullName = superAdminFullName
                 };
 
-                var rolePermissionsToAdd = new List<RolePermission>();
+                var result = await userMgr.CreateAsync(superAdminUser, superAdminPassword);
+                if (result.Succeeded)
+                    await userMgr.AddToRoleAsync(superAdminUser, "SuperAdmin");
+            }
 
-                foreach (var (roleName, permissionNames) in rolePermissionMap)
+            // 🔹 Create Admin user
+            var adminEmail = adminSection["Email"];
+            var adminPassword = adminSection["Password"];
+            var adminFullName = adminSection["FullName"];
+
+            var adminUser = await userMgr.FindByEmailAsync(adminEmail);
+            if (adminUser == null)
+            {
+                adminUser = new ApplicationUser
                 {
-                    var role = allRoles.FirstOrDefault(r => r.Name == roleName);
-                    if (role == null) continue;
+                    Email = adminEmail,
+                    UserName = adminEmail,
+                    FullName = adminFullName
+                };
 
-                    foreach (var permName in permissionNames)
-                    {
-                        var permission = allPermissions.FirstOrDefault(p => p.Name == permName);
-                        if (permission == null) continue;
-
-                        if (!existingRolePermissions.Any(rp => rp.RoleId == role.Id && rp.PermissionId == permission.Id))
-                        {
-                            rolePermissionsToAdd.Add(new RolePermission
-                            {
-                                RoleId = role.Id,
-                                PermissionId = permission.Id
-                            });
-                        }
-                    }
-                }
-
-                if (rolePermissionsToAdd.Any())
-                {
-                    context.Set<RolePermission>().AddRange(rolePermissionsToAdd);
-                    await context.SaveChangesAsync();
-                }
+                var result = await userMgr.CreateAsync(adminUser, adminPassword);
+                if (result.Succeeded)
+                    await userMgr.AddToRoleAsync(adminUser, "Admin");
             }
         }
-
-        //public static async Task SeedBanks(ApplicationDbContext context)
-        //{
-        //    if (!context.Banks.Any())
-        //    {
-        //        var existingBankNames = context.Banks.Select(b => b.Name).ToHashSet();
-
-        //        var newBanks = Enum.GetValues(typeof(BankName))
-        //            .Cast<BankName>()
-        //            .Where(e => !existingBankNames.Contains(GetEnumDescription(e)))
-        //            .Select(e => new Bank
-        //            {
-        //                Name = GetEnumDescription(e),
-        //                ODCode = e.ToString(),
-        //                ShortName = e.ToString()
-        //            })
-        //            .ToList();
-
-        //        if (newBanks.Any())
-        //        {
-        //            await context.Banks.AddRangeAsync(newBanks);
-        //            await context.SaveChangesAsync();
-        //        }
-        //    }
-        //}
-
-        //private static string GetEnumDescription(Enum value)
-        //{
-        //    return value.GetType()
-        //                .GetField(value.ToString())?
-        //                .GetCustomAttribute<DescriptionAttribute>()?
-        //                .Description ?? value.ToString();
-        //}
-
-
-
-
     }
 }

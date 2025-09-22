@@ -6,7 +6,7 @@
         public int Floors { get; set; }
 
         public Guid PropertyId { get; set; }
-        public Property Property { get; set; }
+        public Propertiy Propertiy { get; set; }
 
         public ICollection<Unit> Units { get; set; }  // Flats under this building
     }

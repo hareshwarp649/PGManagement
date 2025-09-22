@@ -16,6 +16,8 @@ using PropertyManage.Data;
 using PropertyManage.Data.Entities;
 using PropertyManage.Infrastructure.IRepository;
 using PropertyManage.Infrastructure.Repository;
+using PropertyManage.ServiceInfra.IServices;
+using PropertyManage.ServiceInfra.Services;
 using Serilog;
 using System.Globalization;
 using System.Text;
@@ -29,7 +31,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), opts => opts.CommandTimeout(180)));
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+{
+    options.Password.RequireDigit = true;
+    options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireLowercase = false;
+})
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
@@ -71,17 +80,16 @@ builder.Services.AddCors(options =>
     //   .AllowCredentials()); // Removed AllowCredentials() for development
 });
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<IUserContextService, UserContextService>();
-
 // Register Generic and Specific Repositories
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IUserDocumentRepository, UserDocumentRepository>();
-builder.Services.AddScoped<IEmployeeDocumentRepository, EmployeeDocumentRepository>();
-builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 builder.Services.AddScoped<IRolePermissionRepository, RolePermissionRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
+builder.Services.AddScoped<ICountryRepository, CountryRepository>();
+builder.Services.AddScoped<IStateRepository, StateRepository>();
+builder.Services.AddScoped<IDistrictRepository, DistrictRepository>();
 
 
 
@@ -90,23 +98,21 @@ builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 
 
 // Register Service
-
-builder.Services.AddScoped<IEmployeeDocumentService, EmployeeDocumentService>();
-
-builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
-builder.Services.AddScoped<IUserContextService, UserContextService>();
-builder.Services.AddScoped<IUserDocumentService, UserDocumentService>();
 builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICountryService, CountryService>();
+builder.Services.AddScoped<IStateService, StateService>();
+builder.Services.AddScoped<IDistrictService, DistrictService>();
 
 
 
 
 
-builder.Services.AddScoped<IAuthorizationHandler, PermissionHandler>();
+//builder.Services.AddScoped<IAuthorizationHandler, PermissionHandler>();
 builder.Services.AddAuthorization(options =>
 {
     foreach (var perm in Enum.GetNames(typeof(OnboardingPermissions))

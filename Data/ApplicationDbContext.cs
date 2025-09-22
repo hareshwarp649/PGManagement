@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PropertyManage.Data.Entities;
+using PropertyManage.Data.MasterEntities;
 
 namespace PropertyManage.Data
 {
@@ -41,12 +42,6 @@ namespace PropertyManage.Data
             });
 
 
-            // One-to-Many Relationship: Employee -> EmployeeDocuments
-            builder.Entity<EmployeeDocument>()
-                .HasOne(ud => ud.Employee)
-                .WithMany(u => u.Documents)
-                .HasForeignKey(ud => ud.EmployeeId)
-                .OnDelete(DeleteBehavior.Cascade);
 
 
             builder.Entity<UserRole>()
@@ -54,7 +49,7 @@ namespace PropertyManage.Data
 
             builder.Entity<UserRole>()
                 .Property(ur => ur.UserId)
-                .HasColumnType("nvarchar(450)")
+                .HasColumnType("uniqueidentifier")
                 .HasMaxLength(450);
 
             builder.Entity<UserRole>()
@@ -82,30 +77,35 @@ namespace PropertyManage.Data
                 .WithMany(u => u.RolePermissions)
                 .HasForeignKey(ur => ur.PermissionId);
 
+            // Permission unique name
+            builder.Entity<Permission>(b =>
+            {
+                b.HasKey(p => p.Id);
+                b.HasIndex(p => p.Name).IsUnique();
+                b.Property(p => p.Name).HasMaxLength(200).IsRequired();
+            });
 
-            builder.Entity<Employee>()
-                .HasOne(e => e.Manager)        // One Employee has One Manager
-                .WithMany(e => e.Subordinates) // One Manager has Many Employees
-                .HasForeignKey(e => e.ManagerId) // Foreign Key
-                .OnDelete(DeleteBehavior.Restrict); // Prevent Cascade Delete
+            // Refresh token
+            builder.Entity<ApplicationUserRefreshToken>(b =>
+            {
+                b.HasKey(t => t.Id);
+                b.HasIndex(t => t.Token).IsUnique();
+                b.HasOne(t => t.User).WithMany(u => u.RefreshTokens).HasForeignKey(t => t.UserId);
+            });
 
-            // Designation
-            //builder.Entity<Employee>()
-            //    .HasOne(l => l.Role)
-            //    .WithMany()
-            //    .HasForeignKey(l => l.RoleId)
-            //    .OnDelete(DeleteBehavior.Restrict);
+
+
+          
         }
-        public DbSet<ApplicationUser> ApplicationUsers { get; set; }
-        public new DbSet<ApplicationRole> Roles { get; set; }
+        //public DbSet<ApplicationUser> ApplicationUsers { get; set; }
+        //public new DbSet<ApplicationRole> Roles { get; set; }
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
         public new DbSet<UserRole> UserRoles { get; set; }
         public DbSet<ApplicationUserRefreshToken> RefreshTokens { get; set; } = null!;
 
         public DbSet<UserDocument> UserDocuments { get; set; }
-        public DbSet<Employee> Employees { get; set; }
-        public DbSet<EmployeeDocument> EmployeeDocuments { get; set; }
+ 
 
         // Add other DbSets for your entities here
 
@@ -113,7 +113,19 @@ namespace PropertyManage.Data
         public DbSet<State> States { get; set; }
         public DbSet<District> Districts { get; set; }
 
-        public DbSet<Property> Properties { get; set; }
+        public DbSet<DocumentType> DocumentTypes { get; set; }
+        public DbSet<ExpenseCategory> ExpenseCategories { get; set; }
+        public DbSet<PaymentMode> PaymentModes { get; set; }
+        public DbSet<RentPlan> RentPlans { get; set; }
+        public DbSet<UtilityType> UtilityTypes { get; set; }
+        public DbSet<PropertyType> PropertyTypes { get; set; }
+
+        public DbSet<Propertiy> Properties { get; set; }
+        public DbSet<Building> Buildings { get; set; }
+        public DbSet<Unit> Units { get; set; }
+        public DbSet<Client> Clients { get; set; }
+        public DbSet<Tenant> Tenants { get; set; }
+
 
 
     }
