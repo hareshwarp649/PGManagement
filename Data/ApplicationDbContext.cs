@@ -18,6 +18,11 @@ namespace PropertyManage.Data
         {
             base.OnModelCreating(builder);
 
+            foreach (var relationship in builder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
+            {
+                relationship.DeleteBehavior = DeleteBehavior.Restrict;
+            }
+
             //Set key lengths explicitly to avoid exceeding 900 bytes
 
             builder.Entity<IdentityUserLogin<Guid>>(entity =>
@@ -30,8 +35,8 @@ namespace PropertyManage.Data
             builder.Entity<IdentityUserRole<Guid>>(entity =>
             {
                 entity.HasKey(r => new { r.UserId, r.RoleId });
-                entity.Property(r => r.UserId).HasMaxLength(450);
-                entity.Property(r => r.RoleId).HasMaxLength(450);
+                entity.Property(r => r.UserId).HasColumnType("uniqueidentifier");
+                entity.Property(r => r.RoleId).HasColumnType("uniqueidentifier");
             });
 
             builder.Entity<IdentityUserToken<Guid>>(entity =>
@@ -47,10 +52,10 @@ namespace PropertyManage.Data
             builder.Entity<UserRole>()
                 .HasKey(ur => new { ur.UserId, ur.RoleId });
 
-            builder.Entity<UserRole>()
-                .Property(ur => ur.UserId)
-                .HasColumnType("uniqueidentifier")
-                .HasMaxLength(450);
+            //builder.Entity<UserRole>()
+            //    .Property(ur => ur.UserId)
+            //    .HasColumnType("uniqueidentifier")
+            //    .HasMaxLength(450);
 
             builder.Entity<UserRole>()
                 .HasOne(ur => ur.Role)
@@ -60,8 +65,8 @@ namespace PropertyManage.Data
             builder.Entity<UserRole>()
                 .HasOne(ur => ur.User)
                 .WithMany(u => u.UserRoles)
-                .HasForeignKey(ur => ur.UserId)
-                .HasPrincipalKey(u => u.Id);
+                .HasForeignKey(ur => ur.UserId);
+               // .HasPrincipalKey(u => u.Id);
 
 
             builder.Entity<RolePermission>()
@@ -93,9 +98,18 @@ namespace PropertyManage.Data
                 b.HasOne(t => t.User).WithMany(u => u.RefreshTokens).HasForeignKey(t => t.UserId);
             });
 
+            //builder.Entity<Propertiy>()
+            //.HasOne(p => p.District)
+            //.WithMany(d => d.Properties)
+            //.HasForeignKey(p => p.DistrictId)
+            //.OnDelete(DeleteBehavior.Restrict);
 
+            //builder.Entity<District>()
+            //  .HasOne(d => d.State)
+            //  .WithMany(s => s.Districts)
+            //  .HasForeignKey(d => d.StateId)
+            //  .OnDelete(DeleteBehavior.Restrict);
 
-          
         }
         //public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         //public new DbSet<ApplicationRole> Roles { get; set; }

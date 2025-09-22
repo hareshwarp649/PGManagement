@@ -31,7 +31,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), opts => opts.CommandTimeout(180)));
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
 {
     options.Password.RequireDigit = true;
     options.Password.RequiredLength = 6;
@@ -94,9 +94,6 @@ builder.Services.AddScoped<IDistrictRepository, DistrictRepository>();
 
 
 
-
-
-
 // Register Service
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
@@ -110,9 +107,7 @@ builder.Services.AddScoped<IDistrictService, DistrictService>();
 
 
 
-
-
-//builder.Services.AddScoped<IAuthorizationHandler, PermissionHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, PermissionHandler>();
 builder.Services.AddAuthorization(options =>
 {
     foreach (var perm in Enum.GetNames(typeof(OnboardingPermissions))

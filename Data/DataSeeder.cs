@@ -77,6 +77,14 @@ namespace PropertyManage.Data
             var superAdminSection = config.GetSection("SeedData:SuperAdmin");
             var adminSection = config.GetSection("SeedData:Admin");
 
+            // ✅ Null checks
+            if (string.IsNullOrWhiteSpace(superAdminSection["Email"]) || string.IsNullOrWhiteSpace(superAdminSection["Password"]))
+                throw new Exception("SuperAdmin credentials missing in appsettings.json");
+
+            if (string.IsNullOrWhiteSpace(adminSection["Email"]) || string.IsNullOrWhiteSpace(adminSection["Password"]))
+                throw new Exception("Admin credentials missing in appsettings.json");
+
+
             // 🔹 Create SuperAdmin user
             var superAdminEmail = superAdminSection["Email"];
             var superAdminPassword = superAdminSection["Password"];
