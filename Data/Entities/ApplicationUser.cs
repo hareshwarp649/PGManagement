@@ -9,7 +9,8 @@ namespace PropertyManage.Data.Entities
         public Guid? EntityId { get; set; }
         public UserType UserType { get; set; }
         public bool IsDeleted { get; set; }=false;
-
+        public Guid? ClientId { get; set; }    // 🔑 Foreign key to Client
+        public Client? Client { get; set; }
         public string FullName { get; set; } = string.Empty;
         public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
         public virtual ICollection<ApplicationUserRefreshToken> RefreshTokens { get; set; } = new List<ApplicationUserRefreshToken>();

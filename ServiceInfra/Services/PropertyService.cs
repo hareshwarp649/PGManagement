@@ -38,23 +38,16 @@ namespace PropertyManage.ServiceInfra.Services
             return _mapper.Map<PropertyDTO>(property);
         }
 
-        public async Task<PropertyDTO> AddPropertyAsync(PropertyCreateDTO dto, Guid clientId)
+        public async Task<PropertyDTO> AddPropertyAsync(PropertyCreateDTO dto)
         {
-            if (await _propertyRepository.ExistsByNameAsync(dto.PropertyName, clientId))
-                throw new InvalidOperationException("Property name already exists for this client");
+            //if (await _propertyRepository.ExistsByNameAsync(dto.PropertyName, clientId))
+            //    throw new InvalidOperationException("Property name already exists for this client");
 
             var clientsId = _currentUserService.ClientId;
             if (clientsId == null)
                 throw new Exception("Client not found.");
 
-            //var property = _mapper.Map<Propertiy>(dto);
-            //property.Id = Guid.NewGuid();
-            //property.CreatedBy = clientId.ToString();
-            //property.UpdatedBy = clientId.ToString();
-            //property.CreatedAt = DateTime.UtcNow;
-            //property.UpdatedAt = DateTime.UtcNow;
-            //property.ClientId = clientId;
-            //property.IsActive = true;
+            
 
             var property = new Propertiy
             {
@@ -68,7 +61,9 @@ namespace PropertyManage.ServiceInfra.Services
                 FloorCount = dto.FloorCount,
                 TotalRooms = dto.TotalRooms,
                 AreaInSqFt = dto.AreaInSqFt,
-                CreatedBy = _currentUserService.UserName
+                CreatedBy = _currentUserService.UserName,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
             await _propertyRepository.AddAsync(property);
@@ -97,7 +92,9 @@ namespace PropertyManage.ServiceInfra.Services
             if (dto.TotalRooms.HasValue) property.TotalRooms = dto.TotalRooms.Value;
             if (dto.AreaInSqFt.HasValue) property.AreaInSqFt = dto.AreaInSqFt.Value;
 
+            property.UpdatedBy=_currentUserService.UserId;
             property.UpdatedAt = DateTime.UtcNow;
+            
             await _propertyRepository.UpdateAsync(property);
 
             return _mapper.Map<PropertyDTO>(property);

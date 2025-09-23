@@ -260,6 +260,12 @@ namespace bca.api.Controllers
         [Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> RegisterAdmin([FromBody] RegisterUserModel model)
         {
+            if (model == null)
+                return BadRequest("Model cannot be null");
+
+            if (!model.ClientId.HasValue)
+                return BadRequest("ClientId is required");
+
             try
             {
                 model.RoleName = "Admin";

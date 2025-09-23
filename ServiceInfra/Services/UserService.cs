@@ -28,6 +28,7 @@ namespace bca.api.Services
             _userManager = userManager;
             _context = context;
             _roleService = roleService;
+            _roleManager = roleManager;
         }
 
         public async Task<IEnumerable<UserDTO>> GetUsersByRoleAsync(string roleName)
@@ -52,9 +53,19 @@ namespace bca.api.Services
 
         public async Task<UserDTO> CreateAsync(UserCreateDTO dto)
         {
-            var user = new ApplicationUser { Email = dto.Email, UserName = dto.Email, FullName = dto.FullName, EntityId = dto.EntityId };
+            var user = new ApplicationUser 
+            {
+                Email = dto.Email, 
+                UserName = dto.Email, 
+                FullName = dto.FullName, 
+                EntityId = dto.EntityId ,
+                //ClientId = dto.ClientId,
+            };
             var res = await _userManager.CreateAsync(user, dto.Password);
-            if (!res.Succeeded) throw new Exception(string.Join(",", res.Errors.Select(e => e.Description)));
+
+            if (!res.Succeeded) 
+                throw new Exception(string.Join(",", res.Errors.Select(e => e.Description)));
+
             if (dto.Roles != null && dto.Roles.Any())
             {
                 await _userManager.AddToRolesAsync(user, dto.Roles);
@@ -77,12 +88,21 @@ namespace bca.api.Services
             if (role == null)
                 throw new Exception($"Role not found: {model.RoleName}");
 
+            if (model.ClientId.HasValue)
+            {
+                var clientExists = await _context.Clients.AnyAsync(c => c.Id == model.ClientId.Value);
+                if (!clientExists)
+                    throw new Exception($"Client not found with Id: {model.ClientId}");
+            }
+
             // 2️⃣ Create User
             var user = new ApplicationUser
             {
                 UserName = model.Username,
                 Email = model.Username,
-                UserType = model.UserType
+                UserType = model.UserType,
+                ClientId= model.ClientId,
+                FullName = model.FullName,
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);

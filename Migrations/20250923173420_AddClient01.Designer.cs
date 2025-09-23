@@ -12,8 +12,8 @@ using PropertyManage.Data;
 namespace PropertyManage.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250923133140_AddClientDb")]
-    partial class AddClientDb
+    [Migration("20250923173420_AddClient01")]
+    partial class AddClient01
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
