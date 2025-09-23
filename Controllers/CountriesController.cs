@@ -61,6 +61,7 @@ namespace PropertyManage.Controllers
         public async Task<ActionResult<CountryDetails>> Create([FromBody] CountryInput dto)
         {
             var country = _mapper.Map<Country>(dto);
+            
             var created = await _countryService.CreateAsync(country);
 
             var result = _mapper.Map<CountryDetails>(created);

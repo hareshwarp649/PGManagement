@@ -81,6 +81,7 @@ namespace bca.api.Services
             var user = new ApplicationUser
             {
                 UserName = model.Username,
+                Email = model.Username,
                 UserType = model.UserType
             };
 

@@ -33,6 +33,61 @@ namespace bca.api.Helpers
             CreateMap<PropertyType, PropertyTypeDTO>().ReverseMap();
             CreateMap<CreatePropertyTypeDTO, PropertyType>();
 
+            // Country mappings
+            // Input → Entity
+            CreateMap<CountryInput, Country>()
+                .ForMember(dest => dest.CountryName, opt => opt.MapFrom(src => src.Name));
+
+            CreateMap<Country, CountryDetails>()
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.CountryName));
+
+            // State mappings
+            CreateMap<StateInput, State>()
+                .ForMember(dest => dest.StateName, opt => opt.MapFrom(src => src.Name));
+
+            CreateMap<State, StateDetails>()
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.StateName));
+
+            //district mappings
+            CreateMap<DistrictInput, District>();
+            CreateMap<District, DistrictDetails>();
+
+            //client mappings
+            CreateMap<ClientCreateDTO, Client>()
+            .ForMember(d => d.Id, opt => opt.Ignore())
+            .ForMember(d => d.CreatedAt, opt => opt.Ignore())
+            .ForMember(d => d.UpdatedAt, opt => opt.Ignore())
+            .ForMember(d => d.CreatedBy, opt => opt.Ignore())
+            .ForMember(d => d.UpdatedBy, opt => opt.Ignore())
+            .ForMember(d => d.Properties, opt => opt.Ignore())
+            .ForMember(d => d.Subscriptions, opt => opt.Ignore())
+            .ForMember(d => d.PaymentTransactions, opt => opt.Ignore());
+
+            // For partial update - we will not rely on AutoMapper to decide nulls; we do manual checks in service.
+            CreateMap<Client, ClientDTO>();
+
+            //ClientSubscription Mappings
+            CreateMap<ClientSubscription, ClientSubscriptionDTO>()
+                .ForMember(dest => dest.ClientName, opt => opt.MapFrom(src => src.Client.ClientName))
+                .ForMember(dest => dest.PlanName, opt => opt.MapFrom(src => src.SubscriptionPlan.PlanName));
+
+            CreateMap<CreateClientSubscriptionDTO, ClientSubscription>();
+            CreateMap<UpdateClientSubscriptionDTO, ClientSubscription>();
+
+            //SubscriptionPlan Mappings
+            CreateMap<SubscriptionPlan, SubscriptionPlanDTO>();
+
+            CreateMap<SubscriptionPlanCreateDTO, SubscriptionPlan>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore());
+            // UpdateDTO -> Entity (Partial Update)
+            CreateMap<SubscriptionPlanUpdateDTO, SubscriptionPlan>()
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+
+
 
             // CreatePropertyDto -> Property
             CreateMap<PropertyCreateDTO, Propertiy>()

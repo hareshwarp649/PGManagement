@@ -43,7 +43,7 @@ namespace PropertyManage.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<IActionResult> Add(PropertyCreateDTO dto)
         {
             var result = await _propertyService.AddPropertyAsync(dto, GetCurrentClientId());

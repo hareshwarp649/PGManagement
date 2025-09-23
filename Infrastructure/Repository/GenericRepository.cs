@@ -11,11 +11,17 @@ namespace PropertyManage.Infrastructure.Repository
     {
         private readonly ApplicationDbContext _context;
         private readonly DbSet<T> _dbSet;
+        private DbContext context;
 
         public GenericRepository(ApplicationDbContext context)
         {
             _context = context;
             _dbSet = context.Set<T>();
+        }
+
+        public GenericRepository(DbContext context)
+        {
+            this.context = context;
         }
 
         public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = null)

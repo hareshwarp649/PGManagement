@@ -121,8 +121,8 @@ namespace PropertyManage.ServiceInfra.Services
         // Helper methods
         private (string token, DateTime expiresAt, string jti) CreateAccessToken(ApplicationUser user, IEnumerable<string> roles, IEnumerable<string> permissions)
         {
-            var jwtCfg = _config.GetSection("Jwt");
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtCfg["Key"]));
+            var jwtCfg = _config.GetSection("JwtSettings");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtCfg["SecretKey"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var jti = Guid.NewGuid().ToString();
@@ -134,7 +134,8 @@ namespace PropertyManage.ServiceInfra.Services
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.UserName ?? ""),
-            new Claim(JwtRegisteredClaimNames.Jti, jti)
+            new Claim(JwtRegisteredClaimNames.Jti, jti),
+            new Claim("clientId", user.EntityId?.ToString() ?? Guid.Empty.ToString())
         };
             foreach (var r in roles) claims.Add(new Claim(ClaimTypes.Role, r));
             foreach (var p in permissions) claims.Add(new Claim("permission", p));

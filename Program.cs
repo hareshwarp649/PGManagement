@@ -87,9 +87,24 @@ builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 builder.Services.AddScoped<IRolePermissionRepository, RolePermissionRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
+builder.Services.AddScoped<IClientRepository, ClientRepository>();
+builder.Services.AddScoped<IClientSubscriptionRepository, ClientSubscriptionRepository>();
+builder.Services.AddScoped<ISubscriptionPlanRepository, SubscriptionPlanRepository>();
 builder.Services.AddScoped<ICountryRepository, CountryRepository>();
 builder.Services.AddScoped<IStateRepository, StateRepository>();
 builder.Services.AddScoped<IDistrictRepository, DistrictRepository>();
+builder.Services.AddScoped<IDocumentTypeRepository, DocumentTypeRepository>();
+builder.Services.AddScoped<IExpenseCategoryRepository, ExpenseCategoryRepository>();
+builder.Services.AddScoped<IPaymentModeRepository, PaymentModeRepository>();
+builder.Services.AddScoped<IPropertyTypeRepository, PropertyTypeRepository>();
+builder.Services.AddScoped<IRentPlanRepository, RentPlanRepository>();
+builder.Services.AddScoped<IUtilityTypeRepository, UtilityTypeRepository>();
+
+builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
+builder.Services.AddScoped<ITenantRepository, TenantRepository>();
+builder.Services.AddScoped<IUnitRepository, UnitRepository>();
+
+
 
 
 
@@ -101,9 +116,24 @@ builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
 builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserContextService, UserContextService>();
+builder.Services.AddScoped<IClientService, ClientService>();
+builder.Services.AddScoped<IClientSubscriptionService, ClientSubscriptionService>();
+builder.Services.AddScoped<ISubscriptionPlanService, SubscriptionPlanService>();
 builder.Services.AddScoped<ICountryService, CountryService>();
 builder.Services.AddScoped<IStateService, StateService>();
 builder.Services.AddScoped<IDistrictService, DistrictService>();
+builder.Services.AddScoped<IDocumentTypeService, DocumentTypeService>();
+builder.Services.AddScoped<IExpenseCategoryService, ExpenseCategoryService>();
+builder.Services.AddScoped<IPaymentModeService, PaymentModeService>();
+builder.Services.AddScoped<IPropertyTypeService, PropertyTypeService>();
+builder.Services.AddScoped<IRentPlanService, RentPlanService>();
+builder.Services.AddScoped<IUtilityTypeService, UtilityTypeService>();
+
+builder.Services.AddScoped<IPropertyService, PropertyService>();
+builder.Services.AddScoped<ITenantService, TenantService>();
+builder.Services.AddScoped<IUnitService, UnitService>();
+
 
 
 

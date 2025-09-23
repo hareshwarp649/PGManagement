@@ -2,10 +2,11 @@
 using PropertyManage.Data.Entities;
 using PropertyManage.Domain.DTOs;
 using PropertyManage.Infrastructure.IRepository;
+using PropertyManage.ServiceInfra.IServices;
 
 namespace PropertyManage.ServiceInfra.Services
 {
-    public class UnitService
+    public class UnitService: IUnitService
     {
         private readonly IUnitRepository _unitRepository;
         private readonly IMapper _mapper;
@@ -23,6 +24,11 @@ namespace PropertyManage.ServiceInfra.Services
 
             var unit = _mapper.Map<Unit>(dto);
             unit.CreatedBy = currentUserId.ToString();
+            unit.CreatedAt = DateTime.UtcNow;
+            unit.UpdatedBy = currentUserId.ToString();
+            unit.UpdatedAt = DateTime.UtcNow;
+            unit.Id = Guid.NewGuid();
+            unit.IsActive = true;
 
             await _unitRepository.AddAsync(unit);
             await _unitRepository.SaveChangesAsync();

@@ -235,11 +235,11 @@ namespace bca.api.Controllers
         
         [HttpPost("register-superadmin")]
         [AllowAnonymous] 
-        public async Task<IActionResult> RegisterSuperAdmin(RegisterUserModel model)
+        public async Task<IActionResult> RegisterSuperAdmin([FromBody] RegisterUserModel model)
         {
             try
             {
-                model.RoleName = "SUPERADMIN";
+                model.RoleName = "SuperAdmin";
                 model.UserType = UserType.SuperAdmin;
 
                 var userDto = await _userService.RegisterUserAsync(model);
@@ -257,12 +257,12 @@ namespace bca.api.Controllers
         }
        
         [HttpPost("register-admin")]
-        [Authorize(Roles = "SUPERADMIN")]
-        public async Task<IActionResult> RegisterAdmin(RegisterUserModel model)
+        [Authorize(Roles = "SuperAdmin")]
+        public async Task<IActionResult> RegisterAdmin([FromBody] RegisterUserModel model)
         {
             try
             {
-                model.RoleName = "ADMIN";
+                model.RoleName = "Admin";
                 model.UserType = UserType.Admin;
 
                 var userDto = await _userService.RegisterUserAsync(model);
@@ -280,11 +280,23 @@ namespace bca.api.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginDTO dto)
         {
-            var device = Request.Headers["User-Agent"].ToString();
-            var res = await _authService.LoginAsync(dto, device);
-            return Ok(res);
+            try
+            {
+                var device = Request.Headers["User-Agent"].ToString();
+                var res = await _authService.LoginAsync(dto, device);
+                return Ok(res);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost("refresh")]

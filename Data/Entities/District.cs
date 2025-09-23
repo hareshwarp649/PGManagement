@@ -1,7 +1,8 @@
 ﻿namespace PropertyManage.Data.Entities
 {
-    public class District : BaseEntity
+    public class District 
     {
+        public Guid Id { get; set; }
         public string Name { get; set; }
         public Guid StateId { get; set; }
         public State State { get; set; }

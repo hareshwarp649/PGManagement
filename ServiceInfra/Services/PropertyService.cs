@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using bca.api.Services;
 using PropertyManage.Data.Entities;
 using PropertyManage.Domain.DTOs;
 using PropertyManage.Infrastructure.IRepository;
@@ -9,11 +10,13 @@ namespace PropertyManage.ServiceInfra.Services
     public class PropertyService : IPropertyService
     {
         private readonly IPropertyRepository _propertyRepository;
+        private readonly IUserContextService _currentUserService;
         private readonly IMapper _mapper;
 
-        public PropertyService(IPropertyRepository propertyRepository, IMapper mapper)
+        public PropertyService(IPropertyRepository propertyRepository, IUserContextService userContextService, IMapper mapper)
         {
             _propertyRepository = propertyRepository;
+            _currentUserService = userContextService;
             _mapper = mapper;
         }
 
@@ -40,8 +43,34 @@ namespace PropertyManage.ServiceInfra.Services
             if (await _propertyRepository.ExistsByNameAsync(dto.PropertyName, clientId))
                 throw new InvalidOperationException("Property name already exists for this client");
 
-            var property = _mapper.Map<Propertiy>(dto);
-            property.ClientId = clientId;
+            var clientsId = _currentUserService.ClientId;
+            if (clientsId == null)
+                throw new Exception("Client not found.");
+
+            //var property = _mapper.Map<Propertiy>(dto);
+            //property.Id = Guid.NewGuid();
+            //property.CreatedBy = clientId.ToString();
+            //property.UpdatedBy = clientId.ToString();
+            //property.CreatedAt = DateTime.UtcNow;
+            //property.UpdatedAt = DateTime.UtcNow;
+            //property.ClientId = clientId;
+            //property.IsActive = true;
+
+            var property = new Propertiy
+            {
+                PropertyName = dto.PropertyName,
+                PropertyTypeId = dto.PropertyTypeId,
+                ClientId = clientsId.Value,   // current client
+                Address = dto.Address,
+                StateId = dto.StateId,
+                DistrictId = dto.DistrictId,
+                CountryId = dto.CountryId,
+                FloorCount = dto.FloorCount,
+                TotalRooms = dto.TotalRooms,
+                AreaInSqFt = dto.AreaInSqFt,
+                CreatedBy = _currentUserService.UserName
+            };
+
             await _propertyRepository.AddAsync(property);
             return _mapper.Map<PropertyDTO>(property);
         }

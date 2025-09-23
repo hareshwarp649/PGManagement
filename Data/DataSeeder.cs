@@ -97,7 +97,8 @@ namespace PropertyManage.Data
                 {
                     Email = superAdminEmail,
                     UserName = superAdminEmail,
-                    FullName = superAdminFullName
+                    FullName = superAdminFullName,
+                    EmailConfirmed=true
                 };
 
                 var result = await userMgr.CreateAsync(superAdminUser, superAdminPassword);
@@ -117,13 +118,57 @@ namespace PropertyManage.Data
                 {
                     Email = adminEmail,
                     UserName = adminEmail,
-                    FullName = adminFullName
+                    FullName = adminFullName,
+                    EmailConfirmed=true
                 };
 
                 var result = await userMgr.CreateAsync(adminUser, adminPassword);
                 if (result.Succeeded)
                     await userMgr.AddToRoleAsync(adminUser, "Admin");
             }
+
+            //// 5️⃣ Create or Update SuperAdmin
+            //await CreateOrUpdateUserAsync(userMgr, superAdminSection["Email"], superAdminSection["Password"], superAdminSection["FullName"], superAdminRole);
+
+            //// 6️⃣ Create or Update Admin
+            //await CreateOrUpdateUserAsync(userMgr, adminSection["Email"], adminSection["Password"], adminSection["FullName"], adminRole);
         }
+
+        //private static async Task CreateOrUpdateUserAsync(UserManager<ApplicationUser> userMgr, string email, string password, string fullName, ApplicationRole role)
+        //{
+        //    var user = await userMgr.FindByEmailAsync(email);
+        //    if (user == null)
+        //    {
+        //        user = new ApplicationUser
+        //        {
+        //            UserName = email,
+        //            Email = email,
+        //            FullName = fullName,
+        //            EmailConfirmed = true
+        //        };
+
+        //        var result = await userMgr.CreateAsync(user, password);
+        //        if (!result.Succeeded)
+        //            throw new Exception($"Failed to create user {email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+        //    }
+        //    else
+        //    {
+        //        // Reset password if user already exists
+        //        var token = await userMgr.GeneratePasswordResetTokenAsync(user);
+        //        var result = await userMgr.ResetPasswordAsync(user, token, password);
+        //        if (!result.Succeeded)
+        //            throw new Exception($"Failed to reset password for {email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+        //    }
+
+        //    // Ensure user has role
+        //    if (!await userMgr.IsInRoleAsync(user, role.Name))
+        //    {
+        //        var result = await userMgr.AddToRoleAsync(user, role.Name);
+        //        if (!result.Succeeded)
+        //            throw new Exception($"Failed to add role {role.Name} to user {email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+        //    }
+        //}
+        
     }
+    
 }

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using bca.api.Services;
 using PropertyManage.Data.Entities;
 using PropertyManage.Domain.DTOs;
 using PropertyManage.Infrastructure.IRepository;
@@ -9,11 +10,13 @@ namespace PropertyManage.ServiceInfra.Services
     public class TenantService:ITenantService
     {
         private readonly ITenantRepository _tenantRepository;
+        private readonly IUserContextService _userContextService;
         private readonly IMapper _mapper;
 
-        public TenantService(ITenantRepository tenantRepository, IMapper mapper)
+        public TenantService(ITenantRepository tenantRepository, IUserContextService userContextService, IMapper mapper)
         {
             _tenantRepository = tenantRepository;
+            _userContextService = userContextService;
             _mapper = mapper;
         }
 
@@ -23,6 +26,13 @@ namespace PropertyManage.ServiceInfra.Services
                 throw new Exception("Tenant with this email already exists.");
 
             var tenant = _mapper.Map<Tenant>(dto);
+            tenant.Id = Guid.NewGuid();
+            tenant.CreatedBy = _userContextService.UserId;
+            tenant.CreatedAt = DateTime.UtcNow;
+            tenant.UpdatedBy = _userContextService.UserId;
+            tenant.UpdatedAt = DateTime.UtcNow;
+            tenant.IsActive = true;
+
             await _tenantRepository.AddAsync(tenant);
             await _tenantRepository.SaveChangesAsync();
             return _mapper.Map<TenantDTO>(tenant);
