@@ -13,10 +13,10 @@ namespace PropertyManage.ServiceInfra.Services
         private readonly IUserContextService _currentUserService;
         private readonly IMapper _mapper;
 
-        public PropertyService(IPropertyRepository propertyRepository, IUserContextService userContextService, IMapper mapper)
+        public PropertyService(IPropertyRepository propertyRepository, IUserContextService currentUserService, IMapper mapper)
         {
             _propertyRepository = propertyRepository;
-            _currentUserService = userContextService;
+            _currentUserService = currentUserService;
             _mapper = mapper;
         }
 
@@ -43,17 +43,16 @@ namespace PropertyManage.ServiceInfra.Services
             //if (await _propertyRepository.ExistsByNameAsync(dto.PropertyName, clientId))
             //    throw new InvalidOperationException("Property name already exists for this client");
 
-            var clientsId = _currentUserService.ClientId;
-            if (clientsId == null)
-                throw new Exception("Client not found.");
-
-            
+            var clientId = _currentUserService.ClientId;
+    
+            if (clientId == null)
+                throw new Exception("Client not found.");           
 
             var property = new Propertiy
             {
                 PropertyName = dto.PropertyName,
                 PropertyTypeId = dto.PropertyTypeId,
-                ClientId = clientsId.Value,   // current client
+                ClientId = clientId.Value,   // current client
                 Address = dto.Address,
                 StateId = dto.StateId,
                 DistrictId = dto.DistrictId,

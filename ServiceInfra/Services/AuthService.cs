@@ -135,7 +135,7 @@ namespace PropertyManage.ServiceInfra.Services
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.UserName ?? ""),
             new Claim(JwtRegisteredClaimNames.Jti, jti),
-            new Claim("clientId", user.EntityId?.ToString() ?? Guid.Empty.ToString())
+            new Claim("clientId", user.ClientId?.ToString() ?? Guid.Empty.ToString())
         };
             foreach (var r in roles) claims.Add(new Claim(ClaimTypes.Role, r));
             foreach (var p in permissions) claims.Add(new Claim("permission", p));

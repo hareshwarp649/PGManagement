@@ -8,6 +8,7 @@ namespace PropertyManage.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin")]
     public class PropertiesController : ControllerBase
     {
         private readonly IPropertyService _propertyService;
@@ -20,49 +21,48 @@ namespace PropertyManage.Controllers
         private Guid GetCurrentClientId()
         {
             var claim = User.FindFirst("clientId")?.Value;
-            if (claim == null) throw new UnauthorizedAccessException();
+            if (claim == null)
+                throw new UnauthorizedAccessException("ClientId claim missing in token.");
             return Guid.Parse(claim);
         }
 
         [HttpGet]
-        [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<IActionResult> GetAll()
         {
-            if (User.IsInRole("SuperAdmin"))
-                return Ok(await _propertyService.GetAllPropertiesAsync());
-
-            return Ok(await _propertyService.GetAllPropertiesAsync(GetCurrentClientId()));
+            var clientId = GetCurrentClientId();
+            var properties = await _propertyService.GetAllPropertiesAsync(clientId);
+            return Ok(properties);
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            return Ok(await _propertyService.GetPropertyByIdAsync(id,
-                User.IsInRole("SuperAdmin") ? null : GetCurrentClientId()));
+            var clientId = GetCurrentClientId();
+            var property = await _propertyService.GetPropertyByIdAsync(id, clientId);
+            return Ok(property);
         }
 
         [HttpPost]
-        [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<IActionResult> Add(PropertyCreateDTO dto)
         {
-            var result = await _propertyService.AddPropertyAsync(dto, GetCurrentClientId());
+            var clientId = GetCurrentClientId();
+            var result = await _propertyService.AddPropertyAsync(dto);
             return Ok(result);
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(Guid id, PropertyUpdateDTO dto)
         {
-            var result = await _propertyService.UpdatePropertyAsync(id, dto, GetCurrentClientId(), User.IsInRole("SuperAdmin"));
+            var clientId = GetCurrentClientId();
+            var result = await _propertyService.UpdatePropertyAsync(id, dto, clientId);
             return Ok(result);
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var result = await _propertyService.DeletePropertyAsync(id, GetCurrentClientId(), User.IsInRole("SuperAdmin"));
+            var clientId = GetCurrentClientId();
+            var result = await _propertyService.DeletePropertyAsync(id, clientId);
             return Ok(result);
         }
     }

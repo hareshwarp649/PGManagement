@@ -11,5 +11,6 @@
         public int FloorCount { get; set; }
         public int TotalRooms { get; set; }
         public double AreaInSqFt { get; set; }
+        
     }
 }
