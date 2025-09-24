@@ -11,10 +11,12 @@ namespace PropertyManage.Data.Entities
         public decimal Rent { get; set; }
 
         public Guid PropertyId { get; set; }
+
+        [ForeignKey(nameof(PropertyId))]
         public Propertiy Propertiy { get; set; }
 
         public Guid? BuildingId { get; set; } // Apartment only
-        public Building Building { get; set; }
+        public Building? Building { get; set; }
 
         public ICollection<Tenant> Tenants { get; set; }
 

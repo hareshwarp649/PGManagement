@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using bca.api.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PropertyManage.Domain.DTOs;
 using PropertyManage.ServiceInfra.IServices;
@@ -10,25 +11,64 @@ namespace PropertyManage.Controllers
     public class UnitsController : ControllerBase
     {
         private readonly IUnitService _unitService;
+        private readonly IUserContextService _userContextService;
 
-        public UnitsController(IUnitService unitService)
+        public UnitsController(IUnitService unitService, IUserContextService userContextService )
         {
             _unitService = unitService;
+            _userContextService = userContextService;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var clientId = _userContextService.ClientId; 
+            if (clientId == null)
+                return BadRequest("ClientId missing in token.");
+            var units = await _unitService.GetAllAsync();
+            return Ok(units);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(Guid id)
+        {
+            var clientId = _userContextService.ClientId;
+            if (clientId == null)
+                return BadRequest("ClientId missing in token.");
+
+            var unit = await _unitService.GetByIdAsync(id);
+            return Ok(unit);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] UnitCreateDTO dto)
+        public async Task<IActionResult> Create(UnitCreateDTO dto)
         {
-            var userId = Guid.Parse(User.FindFirst("id").Value);
-            var result = await _unitService.CreateAsync(dto, userId);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userId = _userContextService.UserId;   
+            var clientId = _userContextService.ClientId; 
+
+            if (clientId == null)
+                return BadRequest("ClientId missing in token.");
+
+            var result = await _unitService.CreateAsync(dto);
             return Ok(result);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UnitUpdateDTO dto)
         {
-            var userId = Guid.Parse(User.FindFirst("id").Value);
-            var result = await _unitService.UpdateAsync(id, dto, userId);
+            if(!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userId = _userContextService.UserId;
+            var clientId = _userContextService.ClientId;
+
+            if (clientId == null)
+                return BadRequest("ClientId missing in token.");
+
+            var result = await _unitService.UpdateAsync(id, dto);
             return Ok(result);
         }
 
@@ -38,13 +78,6 @@ namespace PropertyManage.Controllers
             var deleted = await _unitService.DeleteAsync(id);
             if (!deleted) return NotFound();
             return NoContent();
-        }
-
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(Guid id)
-        {
-            var unit = await _unitService.GetByIdAsync(id);
-            return Ok(unit);
         }
 
         [HttpGet("property/{propertyId}")]

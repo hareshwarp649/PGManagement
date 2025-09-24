@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PropertyManage.Data;
 
@@ -11,9 +12,11 @@ using PropertyManage.Data;
 namespace PropertyManage.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250924050624_AddUser01")]
+    partial class AddUser01
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -862,6 +865,9 @@ namespace PropertyManage.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<Guid>("PropertiyId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("PropertyId")
                         .HasColumnType("uniqueidentifier");
 
@@ -886,7 +892,7 @@ namespace PropertyManage.Migrations
 
                     b.HasIndex("BuildingId");
 
-                    b.HasIndex("PropertyId");
+                    b.HasIndex("PropertiyId");
 
                     b.ToTable("Units");
                 });
@@ -1397,7 +1403,7 @@ namespace PropertyManage.Migrations
 
                     b.HasOne("PropertyManage.Data.Entities.Propertiy", "Propertiy")
                         .WithMany("Units")
-                        .HasForeignKey("PropertyId")
+                        .HasForeignKey("PropertiyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 

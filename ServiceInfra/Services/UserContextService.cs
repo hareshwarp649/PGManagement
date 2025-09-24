@@ -19,7 +19,8 @@ namespace bca.api.Services
         }
 
         public string UserId => _contextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier) ?? "System";
-        public string UserName => _contextAccessor.HttpContext?.User?.Identity?.Name ?? "System";
+        //public string UserName => _contextAccessor.HttpContext?.User?.Identity?.Name ?? "System";
+        public string? UserName => _contextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Name)?.Value;
 
         public Guid? ClientId
         {
@@ -31,31 +32,6 @@ namespace bca.api.Services
             }
         }
 
-
-
-
-        //public async Task<ApplicationUser?> GetCurrentUserAsync(bool ensureNotDeleted, bool ensureNotBCA)
-        //{
-        //    var userName = _contextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-        //    var user = await _userManager.FindByNameAsync(userName!);
-
-        //    if (user == null)
-        //    {
-        //        return null;
-        //    }
-
-        //    if (ensureNotDeleted && user.IsDeleted)
-        //    {
-        //        throw new UnauthorizedAccessException();
-        //    }
-
-        //    if (ensureNotBCA && user.UserType == UserType.Tenant)
-        //    {
-        //        throw new InvalidOperationException("BCA users cannot access this endpoint.");
-        //    }
-
-        //    return user;
-        //}
     }
 
 }

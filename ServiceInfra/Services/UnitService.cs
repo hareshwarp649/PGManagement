@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using bca.api.Services;
+using Microsoft.EntityFrameworkCore;
 using PropertyManage.Data.Entities;
 using PropertyManage.Domain.DTOs;
 using PropertyManage.Infrastructure.IRepository;
@@ -9,23 +11,32 @@ namespace PropertyManage.ServiceInfra.Services
     public class UnitService: IUnitService
     {
         private readonly IUnitRepository _unitRepository;
+        private readonly IUserContextService _userContextService;
         private readonly IMapper _mapper;
 
-        public UnitService(IUnitRepository unitRepository, IMapper mapper)
+        public UnitService(IUnitRepository unitRepository, IUserContextService userContextService, IMapper mapper)
         {
             _unitRepository = unitRepository;
+            _userContextService = userContextService;
             _mapper = mapper;
         }
 
-        public async Task<UnitDTO> CreateAsync(UnitCreateDTO dto, Guid currentUserId)
+        public async Task<IEnumerable<UnitDTO>> GetAllAsync()
+        {
+            var units = await _unitRepository.GetAllAsync();
+            return _mapper.Map<IEnumerable<UnitDTO>>(units);
+        }
+
+        public async Task<UnitDTO> CreateAsync(UnitCreateDTO dto)
         {
             if (await _unitRepository.ExistsByUnitNumberAsync(dto.PropertyId, dto.UnitNumber))
                 throw new Exception("Unit number already exists for this property.");
 
             var unit = _mapper.Map<Unit>(dto);
-            unit.CreatedBy = currentUserId.ToString();
+            unit.Id = Guid.NewGuid();
+            unit.CreatedBy = _userContextService.UserName;
             unit.CreatedAt = DateTime.UtcNow;
-            unit.UpdatedBy = currentUserId.ToString();
+            unit.UpdatedBy = _userContextService.UserId;
             unit.UpdatedAt = DateTime.UtcNow;
             unit.Id = Guid.NewGuid();
             unit.IsActive = true;
@@ -36,15 +47,24 @@ namespace PropertyManage.ServiceInfra.Services
             return _mapper.Map<UnitDTO>(unit);
         }
 
-        public async Task<UnitDTO> UpdateAsync(Guid id, UnitUpdateDTO dto, Guid currentUserId)
+        public async Task<UnitDTO> UpdateAsync(Guid id, UnitUpdateDTO dto)
         {
             var unit = await _unitRepository.GetByIdAsync(id) ?? throw new Exception("Unit not found.");
 
-            if (dto.UnitNumber != null && await _unitRepository.ExistsByUnitNumberAsync(unit.PropertyId, dto.UnitNumber, id))
-                throw new Exception("Unit number already exists for this property.");
+            if (!string.IsNullOrWhiteSpace(dto.UnitNumber))
+            {
+                if (await _unitRepository.ExistsByUnitNumberAsync(unit.PropertyId, dto.UnitNumber, id))
+                    throw new Exception("Unit number already exists for this property.");
+                unit.UnitNumber = dto.UnitNumber.Trim();
+            }
 
-            _mapper.Map(dto, unit); // partial update
-            unit.UpdatedBy = currentUserId.ToString();
+            if (!string.IsNullOrWhiteSpace(dto.UnitType) && dto.UnitType != "string")
+                unit.UnitType = dto.UnitType.Trim();
+
+            if (dto.Capacity > 0)unit.Capacity = dto.Capacity.Value;            
+            if (dto.Rent > 0) unit.Rent = dto.Rent.Value;
+
+            unit.UpdatedBy = _userContextService.UserId;
             unit.UpdatedAt = DateTime.UtcNow;
 
             await _unitRepository.UpdateAsync(unit);

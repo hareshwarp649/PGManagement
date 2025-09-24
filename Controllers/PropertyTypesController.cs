@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PropertyManage.Domain.DTOs;
 using PropertyManage.ServiceInfra.IServices;
 
 namespace PropertyManage.Controllers
@@ -41,7 +42,7 @@ namespace PropertyManage.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Domain.DTOs.CreatePropertyTypeDTO dto)
+        public async Task<IActionResult> Create([FromBody] CreatePropertyTypeDTO dto)
         {
             if (!ModelState.IsValid)
             {
@@ -56,7 +57,7 @@ namespace PropertyManage.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] Domain.DTOs.PropertyTypeDTO dto)
+        public async Task<IActionResult> Update(Guid id, [FromBody] PropertyTypeDTO dto)
         {
             if (id != dto.Id)
             {
