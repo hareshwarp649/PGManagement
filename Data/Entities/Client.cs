@@ -13,8 +13,7 @@
         public DateTime OnboardedAt { get; set; } = DateTime.UtcNow;
 
         // Relationships
-        public ICollection<Propertiy> Properties { get; set; }           // Multi-type properties
-                                                                        //public ICollection<ClientAdmin> ClientAdmins { get; set; }      // Client admins
+        public ICollection<Propertiy> Properties { get; set; }           
         public ICollection<ClientSubscription> Subscriptions { get; set; }
         public ICollection<PaymentTransaction> PaymentTransactions { get; set; }
     }

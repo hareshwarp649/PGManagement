@@ -6,10 +6,9 @@
         public string UnitNumber { get; set; }
         public string UnitType { get; set; }
         public int Capacity { get; set; }
-        public decimal Rent { get; set; }
+        public int FloorNumber { get; set; }
+        public double AreaInSqFt { get; set; }
         public bool IsOccupied { get; set; }
-        public int AvailableBeds { get; set; }
         public Guid PropertyId { get; set; }
-        public Guid? BuildingId { get; set; }
     }
 }

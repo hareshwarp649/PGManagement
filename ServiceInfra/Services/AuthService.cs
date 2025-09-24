@@ -38,6 +38,10 @@ namespace PropertyManage.ServiceInfra.Services
             if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
                 throw new UnauthorizedAccessException("Invalid credentials");
 
+            // 🔑 Check if user must change password
+            if (user.MustChangePassword)
+                throw new InvalidOperationException("Password change required at first login.");
+
             var roles = await _userManager.GetRolesAsync(user);
             var permissions = await GetUserPermissionsAsync(user.Id);
 

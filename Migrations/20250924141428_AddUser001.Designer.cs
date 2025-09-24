@@ -12,8 +12,8 @@ using PropertyManage.Data;
 namespace PropertyManage.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250924064945_UpdateUnit01")]
-    partial class UpdateUnit01
+    [Migration("20250924141428_AddUser001")]
+    partial class AddUser001
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -201,6 +201,9 @@ namespace PropertyManage.Migrations
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("MustChangePassword")
+                        .HasColumnType("bit");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -468,7 +471,7 @@ namespace PropertyManage.Migrations
                     b.ToTable("Districts");
                 });
 
-            modelBuilder.Entity("PropertyManage.Data.Entities.LeaseAgreement", b =>
+            modelBuilder.Entity("PropertyManage.Data.Entities.ExpenseTransaction", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -480,20 +483,14 @@ namespace PropertyManage.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("EndDate")
+                    b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<Guid>("RentPlanId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<decimal>("PaidAmount")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid>("UnitId")
                         .HasColumnType("uniqueidentifier");
@@ -506,13 +503,9 @@ namespace PropertyManage.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RentPlanId");
-
-                    b.HasIndex("TenantId");
-
                     b.HasIndex("UnitId");
 
-                    b.ToTable("LeaseAgreement");
+                    b.ToTable("ExpenseTransaction");
                 });
 
             modelBuilder.Entity("PropertyManage.Data.Entities.PaymentTransaction", b =>
@@ -520,9 +513,6 @@ namespace PropertyManage.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid?>("ClientId")
                         .HasColumnType("uniqueidentifier");
@@ -533,22 +523,19 @@ namespace PropertyManage.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<Guid>("LeaseAgreementId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("PaymentDate")
-                        .HasColumnType("datetime2");
+                    b.Property<decimal>("PaidAmount")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid>("PaymentModeId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("PaymentStatus")
-                        .HasColumnType("int");
-
-                    b.Property<Guid?>("TenantId")
+                    b.Property<Guid>("RentInvoiceId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -561,11 +548,9 @@ namespace PropertyManage.Migrations
 
                     b.HasIndex("ClientId");
 
-                    b.HasIndex("LeaseAgreementId");
-
                     b.HasIndex("PaymentModeId");
 
-                    b.HasIndex("TenantId");
+                    b.HasIndex("RentInvoiceId");
 
                     b.ToTable("PaymentTransaction");
                 });
@@ -602,13 +587,7 @@ namespace PropertyManage.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<double>("AreaInSqFt")
-                        .HasColumnType("float");
-
                     b.Property<Guid>("ClientId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("CountryId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
@@ -620,11 +599,11 @@ namespace PropertyManage.Migrations
                     b.Property<Guid>("DistrictId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("FloorCount")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
+
+                    b.Property<int>("PinCode")
+                        .HasColumnType("int");
 
                     b.Property<string>("PropertyName")
                         .IsRequired()
@@ -636,10 +615,7 @@ namespace PropertyManage.Migrations
                     b.Property<Guid>("PropertyTypeId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("StateId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("TotalRooms")
+                    b.Property<int>("TotalUnits")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -652,15 +628,72 @@ namespace PropertyManage.Migrations
 
                     b.HasIndex("ClientId");
 
-                    b.HasIndex("CountryId");
-
                     b.HasIndex("DistrictId");
 
                     b.HasIndex("PropertyTypeId");
 
-                    b.HasIndex("StateId");
-
                     b.ToTable("Properties");
+                });
+
+            modelBuilder.Entity("PropertyManage.Data.Entities.RentInvoice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("ElectricityBill")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("FromDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("MaintenanceAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("RemainingAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("RentAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("TenantAgreementId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ToDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("TotalDays")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantAgreementId");
+
+                    b.ToTable("RentInvoice");
                 });
 
             modelBuilder.Entity("PropertyManage.Data.Entities.RolePermission", b =>
@@ -676,48 +709,6 @@ namespace PropertyManage.Migrations
                     b.HasIndex("PermissionId");
 
                     b.ToTable("RolePermissions");
-                });
-
-            modelBuilder.Entity("PropertyManage.Data.Entities.SecurityDeposit", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("PaidDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TenantId")
-                        .IsUnique();
-
-                    b.ToTable("SecurityDeposit");
                 });
 
             modelBuilder.Entity("PropertyManage.Data.Entities.State", b =>
@@ -798,6 +789,13 @@ namespace PropertyManage.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Accupation")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Age")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -844,11 +842,72 @@ namespace PropertyManage.Migrations
                     b.ToTable("Tenants");
                 });
 
+            modelBuilder.Entity("PropertyManage.Data.Entities.TenantAgreement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AgreementDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("AgreementType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("MaintenanceAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("RentAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("RentPlanId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("SecurityDeposit")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ValidPeriodMonths")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RentPlanId");
+
+                    b.HasIndex("TenantId")
+                        .IsUnique();
+
+                    b.ToTable("TenantAgreement");
+                });
+
             modelBuilder.Entity("PropertyManage.Data.Entities.Unit", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<double>("AreaInSqFt")
+                        .HasColumnType("float");
 
                     b.Property<Guid?>("BuildingId")
                         .HasColumnType("uniqueidentifier");
@@ -862,14 +921,14 @@ namespace PropertyManage.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("FloorNumber")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<Guid>("PropertiyId")
+                    b.Property<Guid>("PropertyId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("Rent")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("UnitNumber")
                         .IsRequired()
@@ -889,7 +948,7 @@ namespace PropertyManage.Migrations
 
                     b.HasIndex("BuildingId");
 
-                    b.HasIndex("PropertiyId");
+                    b.HasIndex("PropertyId");
 
                     b.ToTable("Units");
                 });
@@ -1204,7 +1263,7 @@ namespace PropertyManage.Migrations
             modelBuilder.Entity("PropertyManage.Data.Entities.Building", b =>
                 {
                     b.HasOne("PropertyManage.Data.Entities.Propertiy", "Propertiy")
-                        .WithMany("Buildings")
+                        .WithMany()
                         .HasForeignKey("PropertiyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1242,29 +1301,13 @@ namespace PropertyManage.Migrations
                     b.Navigation("State");
                 });
 
-            modelBuilder.Entity("PropertyManage.Data.Entities.LeaseAgreement", b =>
+            modelBuilder.Entity("PropertyManage.Data.Entities.ExpenseTransaction", b =>
                 {
-                    b.HasOne("PropertyManage.Data.MasterEntities.RentPlan", "RentPlan")
-                        .WithMany()
-                        .HasForeignKey("RentPlanId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("PropertyManage.Data.Entities.Tenant", "Tenant")
-                        .WithMany("LeaseAgreements")
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("PropertyManage.Data.Entities.Unit", "Unit")
-                        .WithMany()
+                        .WithMany("ExpenseTransactions")
                         .HasForeignKey("UnitId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("RentPlan");
-
-                    b.Navigation("Tenant");
 
                     b.Navigation("Unit");
                 });
@@ -1276,26 +1319,21 @@ namespace PropertyManage.Migrations
                         .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("PropertyManage.Data.Entities.LeaseAgreement", "LeaseAgreement")
-                        .WithMany()
-                        .HasForeignKey("LeaseAgreementId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("PropertyManage.Data.MasterEntities.PaymentMode", "PaymentMode")
                         .WithMany()
                         .HasForeignKey("PaymentModeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("PropertyManage.Data.Entities.Tenant", null)
-                        .WithMany("Payments")
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("LeaseAgreement");
+                    b.HasOne("PropertyManage.Data.Entities.RentInvoice", "RentInvoice")
+                        .WithMany("PaymentTransactions")
+                        .HasForeignKey("RentInvoiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("PaymentMode");
+
+                    b.Navigation("RentInvoice");
                 });
 
             modelBuilder.Entity("PropertyManage.Data.Entities.Propertiy", b =>
@@ -1306,14 +1344,8 @@ namespace PropertyManage.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("PropertyManage.Data.Entities.Country", "Country")
-                        .WithMany()
-                        .HasForeignKey("CountryId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("PropertyManage.Data.Entities.District", "District")
-                        .WithMany()
+                        .WithMany("Properties")
                         .HasForeignKey("DistrictId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1324,19 +1356,20 @@ namespace PropertyManage.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("PropertyManage.Data.Entities.State", "State")
-                        .WithMany()
-                        .HasForeignKey("StateId")
+                    b.Navigation("Client");
+
+                    b.Navigation("District");
+                });
+
+            modelBuilder.Entity("PropertyManage.Data.Entities.RentInvoice", b =>
+                {
+                    b.HasOne("PropertyManage.Data.Entities.TenantAgreement", "TenantAgreement")
+                        .WithMany("RentInvoices")
+                        .HasForeignKey("TenantAgreementId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Client");
-
-                    b.Navigation("Country");
-
-                    b.Navigation("District");
-
-                    b.Navigation("State");
+                    b.Navigation("TenantAgreement");
                 });
 
             modelBuilder.Entity("PropertyManage.Data.Entities.RolePermission", b =>
@@ -1356,17 +1389,6 @@ namespace PropertyManage.Migrations
                     b.Navigation("Permission");
 
                     b.Navigation("Role");
-                });
-
-            modelBuilder.Entity("PropertyManage.Data.Entities.SecurityDeposit", b =>
-                {
-                    b.HasOne("PropertyManage.Data.Entities.Tenant", "Tenant")
-                        .WithOne("SecurityDeposit")
-                        .HasForeignKey("PropertyManage.Data.Entities.SecurityDeposit", "TenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("PropertyManage.Data.Entities.State", b =>
@@ -1391,20 +1413,37 @@ namespace PropertyManage.Migrations
                     b.Navigation("Unit");
                 });
 
+            modelBuilder.Entity("PropertyManage.Data.Entities.TenantAgreement", b =>
+                {
+                    b.HasOne("PropertyManage.Data.MasterEntities.RentPlan", "RentPlan")
+                        .WithMany()
+                        .HasForeignKey("RentPlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PropertyManage.Data.Entities.Tenant", "Tenant")
+                        .WithOne("TenantAgreement")
+                        .HasForeignKey("PropertyManage.Data.Entities.TenantAgreement", "TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("RentPlan");
+
+                    b.Navigation("Tenant");
+                });
+
             modelBuilder.Entity("PropertyManage.Data.Entities.Unit", b =>
                 {
-                    b.HasOne("PropertyManage.Data.Entities.Building", "Building")
+                    b.HasOne("PropertyManage.Data.Entities.Building", null)
                         .WithMany("Units")
                         .HasForeignKey("BuildingId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("PropertyManage.Data.Entities.Propertiy", "Propertiy")
                         .WithMany("Units")
-                        .HasForeignKey("PropertiyId")
+                        .HasForeignKey("PropertyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Building");
 
                     b.Navigation("Propertiy");
                 });
@@ -1461,6 +1500,11 @@ namespace PropertyManage.Migrations
                     b.Navigation("States");
                 });
 
+            modelBuilder.Entity("PropertyManage.Data.Entities.District", b =>
+                {
+                    b.Navigation("Properties");
+                });
+
             modelBuilder.Entity("PropertyManage.Data.Entities.Permission", b =>
                 {
                     b.Navigation("RolePermissions");
@@ -1468,9 +1512,12 @@ namespace PropertyManage.Migrations
 
             modelBuilder.Entity("PropertyManage.Data.Entities.Propertiy", b =>
                 {
-                    b.Navigation("Buildings");
-
                     b.Navigation("Units");
+                });
+
+            modelBuilder.Entity("PropertyManage.Data.Entities.RentInvoice", b =>
+                {
+                    b.Navigation("PaymentTransactions");
                 });
 
             modelBuilder.Entity("PropertyManage.Data.Entities.State", b =>
@@ -1485,16 +1532,19 @@ namespace PropertyManage.Migrations
 
             modelBuilder.Entity("PropertyManage.Data.Entities.Tenant", b =>
                 {
-                    b.Navigation("LeaseAgreements");
-
-                    b.Navigation("Payments");
-
-                    b.Navigation("SecurityDeposit")
+                    b.Navigation("TenantAgreement")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("PropertyManage.Data.Entities.TenantAgreement", b =>
+                {
+                    b.Navigation("RentInvoices");
                 });
 
             modelBuilder.Entity("PropertyManage.Data.Entities.Unit", b =>
                 {
+                    b.Navigation("ExpenseTransactions");
+
                     b.Navigation("Tenants");
                 });
 

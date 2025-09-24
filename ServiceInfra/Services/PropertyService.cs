@@ -54,12 +54,9 @@ namespace PropertyManage.ServiceInfra.Services
                 PropertyTypeId = dto.PropertyTypeId,
                 ClientId = clientId.Value,   // current client
                 Address = dto.Address,
-                StateId = dto.StateId,
+                PinCode = dto.PinCode,
                 DistrictId = dto.DistrictId,
-                CountryId = dto.CountryId,
-                FloorCount = dto.FloorCount,
-                TotalRooms = dto.TotalRooms,
-                AreaInSqFt = dto.AreaInSqFt,
+                TotalUnits = dto.TotalUnits,
                 CreatedBy = _currentUserService.UserName,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -84,12 +81,9 @@ namespace PropertyManage.ServiceInfra.Services
             }
             if (dto.PropertyTypeId.HasValue) property.PropertyTypeId = dto.PropertyTypeId.Value;
             if (!string.IsNullOrWhiteSpace(dto.Address)) property.Address = dto.Address;
-            if (dto.CountryId.HasValue) property.CountryId = dto.CountryId.Value;
-            if (dto.StateId.HasValue) property.StateId = dto.StateId.Value;
+            if (dto.PinCode.HasValue) property.PinCode = dto.PinCode.Value;
             if (dto.DistrictId.HasValue) property.DistrictId = dto.DistrictId.Value;
-            if (dto.FloorCount.HasValue) property.FloorCount = dto.FloorCount.Value;
-            if (dto.TotalRooms.HasValue) property.TotalRooms = dto.TotalRooms.Value;
-            if (dto.AreaInSqFt.HasValue) property.AreaInSqFt = dto.AreaInSqFt.Value;
+            if (dto.TotalUnits.HasValue) property.TotalUnits = dto.TotalUnits.Value;
 
             property.UpdatedBy=_currentUserService.UserId;
             property.UpdatedAt = DateTime.UtcNow;

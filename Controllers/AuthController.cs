@@ -24,8 +24,9 @@ namespace bca.api.Controllers
         private readonly IUserRoleService _userRoleService;
         private readonly IConfiguration _configuration;
         private readonly IUserService _userService;
+        private readonly IUserContextService _userContextService;
 
-        public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IAuthService authService ,IUserRoleService userRoleService, IConfiguration configuration, IUserService userService)
+        public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IAuthService authService ,IUserRoleService userRoleService, IConfiguration configuration, IUserService userService, IUserContextService userContextService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -33,6 +34,7 @@ namespace bca.api.Controllers
             _userRoleService = userRoleService;
             _configuration = configuration;
             _userService = userService;
+            _userContextService = userContextService;
         }
 
 
@@ -120,33 +122,6 @@ namespace bca.api.Controllers
         //    return Ok(new { token, user.Id, user.EntityId, isAdmin = user.UserType == UserType.Admin });
         //}
 
-        //[HttpPost("logout")]
-        //public async Task<IActionResult> Logout()
-        //{
-        //    await _signInManager.SignOutAsync();
-        //    return Ok(new { message = "User logged out successfully!" });
-        //}
-
-        //[Authorize]
-        //[HttpGet("users")]
-        //public async Task<IActionResult> GetAllUsers()
-        //{
-        //    var users = _userManager.Users.Where(x => !x.IsDeleted).ToList();
-        //    var userList = new List<object>();
-
-        //    foreach (var user in users)
-        //    {
-        //        userList.Add(new
-        //        {
-        //            user.Id,
-        //            user.UserName,
-        //            user.Email,
-        //            user.PhoneNumber,
-        //            Roles = await _userManager.GetRolesAsync(user)
-        //        });
-        //    }
-        //    return Ok(userList);
-        //}
 
         //[Authorize]
         //[HttpGet("user")]
@@ -295,6 +270,10 @@ namespace bca.api.Controllers
                 var res = await _authService.LoginAsync(dto, device);
                 return Ok(res);
             }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("Password change required"))
+            {
+                return BadRequest(new { message = ex.Message, mustChangePassword = true });
+            }
             catch (UnauthorizedAccessException ex)
             {
                 return Unauthorized(new { message = ex.Message });
@@ -303,6 +282,23 @@ namespace bca.api.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword(ChangePasswordDTO dto)
+        {
+            var user = await _userManager.FindByIdAsync(_userContextService.UserId.ToString());
+            if (user == null) return Unauthorized();
+
+            var result = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            // Remove flag after first password change
+            user.MustChangePassword = false;
+            await _userManager.UpdateAsync(user);
+
+            return Ok("Password changed successfully.");
         }
 
         [HttpPost("refresh")]

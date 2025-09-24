@@ -6,13 +6,13 @@ namespace PropertyManage.Data.Entities
 {
     public class PaymentTransaction : BaseEntity
     {
-        public Guid LeaseAgreementId { get; set; }
+        public Guid RentInvoiceId { get; set; }
         public Guid PaymentModeId { get; set; }
-        public decimal Amount { get; set; }
-        public DateTime PaymentDate { get; set; }
-        public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;// Success, Failed, Pending
+        public decimal PaidAmount { get; set; }
+        public DateTime Date { get; set; }
 
-        public LeaseAgreement LeaseAgreement { get; set; }
+        // Navigation
+        public RentInvoice RentInvoice { get; set; }
         public PaymentMode PaymentMode { get; set; }
     }
 }

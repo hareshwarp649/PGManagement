@@ -53,6 +53,12 @@ namespace PropertyManage.ServiceInfra.Services
             if (!string.IsNullOrEmpty(dto.PhoneNumber))
                 tenant.PhoneNumber = dto.PhoneNumber;
 
+            if(!string.IsNullOrEmpty(dto.Accupation))
+                tenant.Accupation = dto.Accupation;
+
+            if (dto.Age.HasValue)
+                tenant.Age = dto.Age.Value;
+
             if (dto.MoveInDate.HasValue)
                 tenant.MoveInDate = dto.MoveInDate.Value;
 

@@ -4,12 +4,11 @@ namespace PropertyManage.Data.Entities
 {
     public class ExpenseTransaction : BaseEntity
     {
-        public Guid PropertyId { get; set; }
-        public Guid ExpenseCategoryId { get; set; }
-        public decimal Amount { get; set; }
-        public DateTime ExpenseDate { get; set; }
+        public Guid UnitId { get; set; }
+        public decimal PaidAmount { get; set; }
+        public DateTime Date { get; set; }
 
-        public Propertiy Propertiy { get; set; }
-        public ExpenseCategory ExpenseCategory { get; set; }
+        // Navigation
+        public Unit Unit { get; set; }
     }
 }

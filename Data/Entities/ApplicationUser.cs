@@ -11,6 +11,7 @@ namespace PropertyManage.Data.Entities
         public bool IsDeleted { get; set; }=false;
         public Guid? ClientId { get; set; }    // 🔑 Foreign key to Client
         public Client? Client { get; set; }
+        public bool MustChangePassword { get; set; } = true;
         public string FullName { get; set; } = string.Empty;
         public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
         public virtual ICollection<ApplicationUserRefreshToken> RefreshTokens { get; set; } = new List<ApplicationUserRefreshToken>();

@@ -7,18 +7,14 @@ namespace PropertyManage.Data.Entities
         public string FullName { get; set; }
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
+        public int Age { get; set; }
+        public string Accupation { get; set; }
+        public TenantType TenantType { get; set; } = TenantType.Family;
         public DateTime MoveInDate { get; set; }
         public DateTime? MoveOutDate { get; set; }
 
         public Guid UnitId { get; set; }
         public Unit Unit { get; set; }
-
-        // Optional: Tenant type
-        public TenantType TenantType { get; set; } = TenantType.Permanent;
-
-        // Relationships
-        public ICollection<LeaseAgreement> LeaseAgreements { get; set; } = new List<LeaseAgreement>();
-        public ICollection<PaymentTransaction> Payments { get; set; } = new List<PaymentTransaction>();
-        public SecurityDeposit SecurityDeposit { get; set; }
+        public TenantAgreement TenantAgreement { get; set; }  
     }
 }

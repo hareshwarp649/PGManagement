@@ -61,8 +61,10 @@ namespace PropertyManage.ServiceInfra.Services
             if (!string.IsNullOrWhiteSpace(dto.UnitType) && dto.UnitType != "string")
                 unit.UnitType = dto.UnitType.Trim();
 
-            if (dto.Capacity > 0)unit.Capacity = dto.Capacity.Value;            
-            if (dto.Rent > 0) unit.Rent = dto.Rent.Value;
+            if (dto.Capacity > 0)unit.Capacity = dto.Capacity.Value;     
+            if (dto.FloorNumber >= 0) unit.FloorNumber = dto.FloorNumber.Value;
+            if (dto.AreaInSqFt > 0) unit.AreaInSqFt = dto.AreaInSqFt.Value;
+
 
             unit.UpdatedBy = _userContextService.UserId;
             unit.UpdatedAt = DateTime.UtcNow;

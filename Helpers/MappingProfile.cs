@@ -95,7 +95,6 @@ namespace bca.api.Helpers
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore()) // handled in BaseEntity
                 .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.ClientId, opt => opt.Ignore()) // Set manually in Service
-                .ForMember(dest => dest.Buildings, opt => opt.Ignore())
                 .ForMember(dest => dest.Units, opt => opt.Ignore());
 
             // UpdatePropertyDto -> Property (Partial Update)

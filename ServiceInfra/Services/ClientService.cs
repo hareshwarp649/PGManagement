@@ -1,5 +1,8 @@
 ﻿using AutoMapper;
 using bca.api.Services;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using PropertyManage.Data.Entities;
 using PropertyManage.Domain.DTOs;
 using PropertyManage.Infrastructure.IRepository;
 using PropertyManage.ServiceInfra.IServices;
@@ -11,11 +14,15 @@ namespace PropertyManage.ServiceInfra.Services
         private readonly IClientRepository _clientRepository;
         private readonly IMapper _mapper;
         private readonly IUserContextService _userContextService;
-        public ClientService(IClientRepository clientRepository, IMapper mapper, IUserContextService userContextService)
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IEmailSender _emailSender;
+        public ClientService(IClientRepository clientRepository, IMapper mapper, IUserContextService userContextService,  UserManager<ApplicationUser> userManager, IEmailSender emailSender)
         {
             _clientRepository = clientRepository;
             _mapper = mapper;
             _userContextService = userContextService;
+            _userManager = userManager;
+            _emailSender = emailSender;
         }
 
         public async Task<IEnumerable<ClientDTO>> GetAllAsync()
@@ -40,7 +47,7 @@ namespace PropertyManage.ServiceInfra.Services
             if (await _clientRepository.ExistsByEmailAsync(dto.ContactEmail))
                 throw new InvalidOperationException("A client with this email already exists.");
 
-            var client = _mapper.Map<Data.Entities.Client>(dto);
+            var client = _mapper.Map<Client>(dto);
             client.Id = Guid.NewGuid();
             client.OnboardedAt = DateTime.UtcNow;
             client.CreatedAt = DateTime.UtcNow;
@@ -50,7 +57,39 @@ namespace PropertyManage.ServiceInfra.Services
             client.IsActive = true;
             await _clientRepository.AddAsync(client);
             await _clientRepository.SaveChangesAsync();
+
+            // ==== Identity User Creation ====
+            var tempPassword = GenerateTemporaryPassword();
+
+            var user = new ApplicationUser
+            {
+                Id = Guid.NewGuid(),
+                UserName = dto.ContactEmail,
+                Email = dto.ContactEmail,
+                PhoneNumber = dto.ContactPhone,
+                ClientId = client.Id,
+                EmailConfirmed = true,
+                MustChangePassword = true
+            };
+
+            var result = await _userManager.CreateAsync(user, tempPassword);
+            if (!result.Succeeded)
+                throw new Exception($"User creation failed: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+
+            // Assign ClientOwner Role
+            await _userManager.AddToRoleAsync(user, "Owner");
+
+            // Email temporary password
+            await _emailSender.SendEmailAsync(dto.ContactEmail, "Welcome to Our Platform",
+                $"Dear {dto.ContactPerson},<br/>Your account has been created.<br/><b>Temporary Password:</b> {tempPassword}<br/>Please login and change your password.");
             return _mapper.Map<ClientDTO>(client);
+        }
+        private string GenerateTemporaryPassword(int length = 12)
+        {
+            const string validChars = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$?_-";
+            var random = new Random();
+            return new string(Enumerable.Repeat(validChars, length)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
         public async Task<ClientDTO?> UpdateAsync(Guid id, ClientUpdateDTO dto, bool isSuperAdmin = false, Guid? requestingClientId = null)

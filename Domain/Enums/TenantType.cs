@@ -2,10 +2,8 @@
 {
     public enum TenantType
     {
-        Permanent,
-        Temporary,
-        Corporate,
-        Student,
-        PG
+        Family,
+        Bachelor,
+        Student
     }
 }
