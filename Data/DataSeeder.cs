@@ -41,7 +41,7 @@ namespace PropertyManage.Data
             await db.SaveChangesAsync();
 
             // 🔹 Seed Roles
-            var roles = new[] { "SuperAdmin", "Admin" };
+            var roles = new[] { "SuperAdmin", "Admin", "Client_Owner" };
             foreach (var roleName in roles)
             {
                 if (await roleMgr.FindByNameAsync(roleName) == null)

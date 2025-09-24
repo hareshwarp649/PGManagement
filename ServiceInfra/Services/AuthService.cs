@@ -38,12 +38,24 @@ namespace PropertyManage.ServiceInfra.Services
             if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
                 throw new UnauthorizedAccessException("Invalid credentials");
 
-            // 🔑 Check if user must change password
-            if (user.MustChangePassword)
-                throw new InvalidOperationException("Password change required at first login.");
-
             var roles = await _userManager.GetRolesAsync(user);
             var permissions = await GetUserPermissionsAsync(user.Id);
+
+            // 🔑 Check if user must change password
+            if (user.MustChangePassword)
+            {
+                // Temporary token only for password change
+                var (tempToken, accessExpiresAt, normalJti) = CreateAccessToken(user, roles, new List<string>());
+
+                return new AuthResponseDTO
+                {
+                    AccessToken = tempToken,
+                    AccessTokenExpiresAt = accessExpiresAt,
+                    RefreshToken = null,
+                    MustChangePassword = true,
+                    Message = "Password change required at first login."
+                };
+            }
 
             var (token, expiresAt, jti) = CreateAccessToken(user, roles, permissions);
             var refresh = CreateRefreshToken();

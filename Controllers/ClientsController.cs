@@ -45,7 +45,11 @@ namespace PropertyManage.Controllers
         public async Task<IActionResult> Create([FromBody] ClientCreateDTO dto)
         {
             var created = await _clientService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetClientById), new { id = created.Id }, created);
+            return CreatedAtAction(nameof(GetClientById), new { id = created.Id }, new
+            {
+                message = "Client created successfully and email sent with temporary password.",
+                data = created
+            });
         }
 
         [HttpPut("{id:guid}")]

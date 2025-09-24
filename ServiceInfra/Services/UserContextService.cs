@@ -32,6 +32,16 @@ namespace bca.api.Services
             }
         }
 
+        public Guid? UserGuidId
+        {
+            get
+            {
+                var claim = _contextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (Guid.TryParse(claim, out var gid)) return gid;
+                return null;
+            }
+        }
+
     }
 
 }

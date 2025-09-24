@@ -65,6 +65,8 @@ namespace bca.api.Helpers
 
             // For partial update - we will not rely on AutoMapper to decide nulls; we do manual checks in service.
             CreateMap<Client, ClientDTO>();
+            CreateMap<ClientUpdateDTO, Client>()
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
             //ClientSubscription Mappings
             CreateMap<ClientSubscription, ClientSubscriptionDTO>()

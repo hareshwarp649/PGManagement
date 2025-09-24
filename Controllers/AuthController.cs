@@ -268,6 +268,16 @@ namespace bca.api.Controllers
             {
                 var device = Request.Headers["User-Agent"].ToString();
                 var res = await _authService.LoginAsync(dto, device);
+
+                if (res.MustChangePassword)
+                    return Ok(new
+                    {
+                        accessToken = res.AccessToken,
+                        accessTokenExpiresAt = res.AccessTokenExpiresAt,
+                        mustChangePassword = true,
+                        message = res.Message
+                    });
+
                 return Ok(res);
             }
             catch (InvalidOperationException ex) when (ex.Message.Contains("Password change required"))
@@ -284,19 +294,31 @@ namespace bca.api.Controllers
             }
         }
 
-        [HttpPost("change-password")]
-        public async Task<IActionResult> ChangePassword(ChangePasswordDTO dto)
+        [Authorize]
+        [HttpPost("change-password")]      
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO dto)
         {
-            var user = await _userManager.FindByIdAsync(_userContextService.UserId.ToString());
-            if (user == null) return Unauthorized();
+            var userId = _userContextService.UserGuidId;
+            if (userId == null)
+                return Unauthorized(new { message = "Invalid or missing user identity." });
+
+            //var user = await _userManager.FindByIdAsync(_userContextService.UserId.ToString());
+            //if (user == null) return Unauthorized();
+
+            var user = await _userManager.FindByIdAsync(userId.Value.ToString());
+            if (user == null)
+                return Unauthorized(new { message = "User not found." });
 
             var result = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
 
             // Remove flag after first password change
-            user.MustChangePassword = false;
-            await _userManager.UpdateAsync(user);
+            if (user.MustChangePassword)
+            {
+                user.MustChangePassword = false;
+                await _userManager.UpdateAsync(user);
+            }
 
             return Ok("Password changed successfully.");
         }

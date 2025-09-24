@@ -12,8 +12,8 @@ using PropertyManage.Data;
 namespace PropertyManage.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250924141428_AddUser001")]
-    partial class AddUser001
+    [Migration("20250924210726_Initial01")]
+    partial class Initial01
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

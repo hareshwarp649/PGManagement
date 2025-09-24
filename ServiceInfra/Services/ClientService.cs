@@ -47,6 +47,9 @@ namespace PropertyManage.ServiceInfra.Services
             if (await _clientRepository.ExistsByEmailAsync(dto.ContactEmail))
                 throw new InvalidOperationException("A client with this email already exists.");
 
+            if (await _clientRepository.ExistsByNameAsync(dto.ClientName))
+                throw new InvalidOperationException("A client with this name already exists.");
+
             var client = _mapper.Map<Client>(dto);
             client.Id = Guid.NewGuid();
             client.OnboardedAt = DateTime.UtcNow;
@@ -55,11 +58,12 @@ namespace PropertyManage.ServiceInfra.Services
             client.CreatedBy = _userContextService.UserId;
             client.UpdatedBy = _userContextService.UserId;
             client.IsActive = true;
+
             await _clientRepository.AddAsync(client);
             await _clientRepository.SaveChangesAsync();
 
             // ==== Identity User Creation ====
-            var tempPassword = GenerateTemporaryPassword();
+            var tempPassword = "Temp@" + Guid.NewGuid().ToString("N").Substring(0, 8); 
 
             var user = new ApplicationUser
             {
@@ -77,20 +81,25 @@ namespace PropertyManage.ServiceInfra.Services
                 throw new Exception($"User creation failed: {string.Join(", ", result.Errors.Select(e => e.Description))}");
 
             // Assign ClientOwner Role
-            await _userManager.AddToRoleAsync(user, "Owner");
+            await _userManager.AddToRoleAsync(user, "Client_Owner");
 
-            // Email temporary password
-            await _emailSender.SendEmailAsync(dto.ContactEmail, "Welcome to Our Platform",
-                $"Dear {dto.ContactPerson},<br/>Your account has been created.<br/><b>Temporary Password:</b> {tempPassword}<br/>Please login and change your password.");
+            // Send Email with temp password
+            var subject = "Welcome to Retro! Your temporary password";
+            var body = $"Hello {dto.ContactPerson},<br>Your account has been created.<br>" +
+                       $"Username: {dto.ContactEmail}<br>Temporary Password: {tempPassword}<br>" +
+                       $"Please login and change your password immediately.";
+
+            await _emailSender.SendEmailAsync(dto.ContactEmail, subject, body);
+
             return _mapper.Map<ClientDTO>(client);
         }
-        private string GenerateTemporaryPassword(int length = 12)
-        {
-            const string validChars = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$?_-";
-            var random = new Random();
-            return new string(Enumerable.Repeat(validChars, length)
-              .Select(s => s[random.Next(s.Length)]).ToArray());
-        }
+        //private string GenerateTemporaryPassword(int length = 12)
+        //{
+        //    const string validChars = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$?_-";
+        //    var random = new Random();
+        //    return new string(Enumerable.Repeat(validChars, length)
+        //      .Select(s => s[random.Next(s.Length)]).ToArray());
+        //}
 
         public async Task<ClientDTO?> UpdateAsync(Guid id, ClientUpdateDTO dto, bool isSuperAdmin = false, Guid? requestingClientId = null)
         {

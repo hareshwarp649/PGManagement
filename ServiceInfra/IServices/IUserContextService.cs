@@ -9,6 +9,7 @@ namespace bca.api.Services
         string UserId { get; }      // JWT claim se UserId
         string UserName { get; }
         Guid? ClientId { get; }
+        Guid? UserGuidId { get; }
     }
 
 }
